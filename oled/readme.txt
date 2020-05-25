@@ -3,8 +3,7 @@ https://learn.adafruit.com/adafruit-pioled-128x32-mini-oled-for-raspberry-pi/usa
 https://www.raspberrypi-spy.co.uk/2018/04/i2c-oled-display-module-with-raspberry-pi/
 https://shumeipai.nxez.com/2019/04/29/use-the-ssd1306-oled-display-on-the-raspberry-pi.html
 
-
-![image](https://github.com/lengsh/xiaoshu/blob/master/oled/i2c_oled_128x64_raspberry_pi_wiring.png)
+![image](https://github.com/lengsh/xiaoshu/raw/master/oled/i2c_oled_128x64_raspberry_pi_wiring.png)
 
 0. link pin(OLED1603 and RaspberryPi4)
 
