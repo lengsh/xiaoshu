@@ -15,6 +15,9 @@ use a few electronic components, and a Raspberry Pi to make a new world!
 11. 气压传感器
 12. 
 
-![image](https://www.element14.com/community/servlet/JiveServlet/downloadImage/102-92640-8-726998/GPIO-Pi4.png)
+
+更新 Raspbian ：
+	sudo apt-get update
+	sudo apt-get dist-upgrade
 
 
