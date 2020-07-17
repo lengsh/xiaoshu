@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="{{ static_url("style.css") }}">
+    <title>{% block title %}Default title{% end %}</title>
+  </head>
+  <body>
+<h2>{% block headname %} A template test {% end %}</h2>
+<a href="/">Index</a> | <a href="/bold">Bold</a> | <a href="/inb">Inb</a> | <a href="/auth/login">login</a> | <a href="/auth/logout">logout</a> 
+
+{% module Hello() %}
+    <ul>
+        {% block body %}
+        {% for student in students %}
+          <li>Hi {{ escape(student['name']) }}</li>
+        {% end %}
+        {% end %}
+    </ul>
+  </body>
+  <div id="footer">
+    <headline></headline>
+<!--done-->
+Copyright &copy; 2020 lengsh
+<br /><span id="poweredby">Powered by lengsh</span>
+{% set mailLink = '<a href="mailto:lengss@hotmail.com">Contact Us</a>' %}
+{% raw mailLink %} <BR>
+{% raw linkify("https://www.lengsh.cn", extra_params='ref=website') %}.
+</div><!--end: footer -->
+  
+
+</html>
+

@@ -1,0 +1,11 @@
+
+{% extends "base.html" %}
+{% block title %}Bold title{% end %}
+{% block headname %}Bold title{% end %}
+{% block body %}
+{% for s in students %}
+  <li><span style="bold">Bold , {{ escape(s['name']) }}</span></li>
+{% end %}
+{# 这是一段注释！！ #}
+{% end %}
+{% include "foo.html" %}
