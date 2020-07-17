@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import tornado.template as template
 import os.path
 import tornado.httpserver
@@ -40,7 +43,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
      def get(self):
         students = [dict(name='david'), dict(name='jack')]
-        self.render('base.html',students=students )
+        self.render('base.html',students=students, user=self.current_user )
 
 class HelpPageHandler(BaseHandler):
      @tornado.web.authenticated
@@ -61,6 +64,13 @@ class InbPageHandler(BaseHandler):
 class HelloModule(tornado.web.UIModule):
     def render(self):
         return '<h1>Hello, world!</h1>'
+
+class UserModule(tornado.web.UIModule):
+    def render(self):
+        if self.current_user :
+            return '{}'.format(self.current_user)
+        else:
+            return 'Anonymouse'
 
 class AuthCreateHandler(BaseHandler):
     def get(self):
@@ -174,7 +184,7 @@ class Application(tornado.web.Application):
             blog_title=u"Tornado Blog",
             template_path=os.path.join(os.path.dirname(__file__), "html"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            ui_modules={'Hello': HelloModule},
+            ui_modules={'Hello': HelloModule, 'UserName':UserModule},
             xsrf_cookies=True,
             cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
             login_url="/auth/login",
