@@ -14,6 +14,7 @@ from tornado import gen
 import tornado.httpclient
 import sqlite3
 import bcrypt
+import bloger
 
 from tornado.options import  options,define 
 define("port",default=8080,help="on the given help", type="int")
@@ -25,11 +26,14 @@ class BaseHandler(tornado.web.RequestHandler):
         logger.debug("blog_user cookie = {}".format( cookies ))
         if cookies == None :
             return None
-        ret = str(cookies).split("|", 1)
+        rets = str(cookies, encoding="utf8")
+        logger.debug(rets)
+        ret = rets.split("|", 1)
         logger.debug("current user = {}".format(ret))
         if len(ret)>= 2:
-            self.current_user = ret[1]
-            logger.debug("current user = {}".format(ret[1]))
+            user = bloger.Author(int(ret[0]), str(ret[1]),'')
+            self.current_user = user
+            logger.debug("current user id={}, name={}".format(ret[0], ret[1]))
             return self.current_user
         
     async def any_author_exists(self ):
@@ -45,30 +49,94 @@ class IndexHandler(BaseHandler):
         students = [dict(name='david'), dict(name='jack')]
         self.render('base.html',students=students, user=self.current_user )
 
-class HelpPageHandler(BaseHandler):
+class BlogPostHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        id = self.get_argument("id", None)
+        blog = None
+        if id:
+            try:
+                cur = self.application.db.cursor()
+                pa = (int(id),)
+                cur.execute("SELECT * FROM blog WHERE id=?", pa)
+                usr = cur.fetchone()
+                if len(usr) > 0:
+                    blog = bloger.Bloge(usr[0], usr[1],usr[2],usr[3])
+            except Exception as e:
+                logger.error(e.args[0])
+        self.render("post.html", blog= blog)
+
+    @tornado.web.authenticated
+    def post(self):
+        contents = self.get_argument("contents", None)
+        id = self.get_argument("id", None)
+        title = self.get_argument("title", None)
+        cur = self.application.db.cursor()
+        try:
+           # update 
+            if id:
+                # update 
+                sql ="UPDATE blog SET title = {}, contents = {} WHERE id = {}".format(title, contents , int(id))
+                logger.debug(sql) 
+                cur.execute(
+                "UPDATE blog SET title = ?, contents = ? "
+                "WHERE id = ?", (title, contents , int(id),)
+                )
+            else:
+                # insert
+                cur.execute("SELECT Id FROM blog order by Id desc limit 1")
+                if cur.fetchone() == None :
+                    id = 1
+                else:
+                    id = int( cur.fetchone()[0]  ) + 1
+
+                sql="INSERT INTO blog (Id,uId,title,contents) VALUES ({},{},{},{})".format(
+                        id, self.current_user.id, title, contents)
+                logger.debug(sql)
+                cur.execute(
+                        "INSERT INTO blog (Id,uId,title,contents)" 
+                        "VALUES (?,?,?,?)",(id, self.current_user.id, title, contents,))
+        
+            self.application.db.commit()
+        except Exception as e:
+            logger.error(e.args[0])
+        finally:
+            self.redirect("/blog/read")
+
+class BlogReadHandler(BaseHandler):
      @tornado.web.authenticated
      def get(self):
-        students = [dict(name='lengsh'), dict(name='mark')]
-        self.render('bold.html',students=students)
+        #self.render('inb.html',students=students)
+        blogs = None
+        id = self.get_argument("id", None)
+        cur = self.application.db.cursor()
+        try:
+            if id:
+                 blogs = cur.execute("SELECT * FROM blog WHERE id=?", (int(id),))
+            else:
+                page = self.get_argument("page", None)
+                if page == None :
+                    page = 0
+                cur.execute("SELECT * FROM blog order by id desc limit ?,10", (10*int(page),))
+                blogs = cur.fetchall()
+                logger.debug(blogs)
+        except Exception as e:
+            logger.error(e.args[0])
+        finally:
+            self.render("read.html", blogs = blogs )
 
-class SlowPageHandler(tornado.web.RequestHandler):
-     def get(self):
-        self.write("hello, Mr. Slow !")
-
-class InbPageHandler(BaseHandler):
-     @tornado.web.authenticated
-     def get(self):
-        students = [dict(name='lengsh'), dict(name='mark')]
-        self.render('inb.html',students=students)
-
-class HelloModule(tornado.web.UIModule):
+class LoginModule(tornado.web.UIModule):
     def render(self):
-        return '<h1>Hello, world!</h1>'
+        if self.current_user :
+            return '<a href="/auth/logout">logout</a>'
+        else:
+            return '<a href="/auth/login">login</a>'
 
 class UserModule(tornado.web.UIModule):
     def render(self):
         if self.current_user :
-            return '{}'.format(self.current_user)
+            logger.debug("{},{}".format(self.current_user.id, self.current_user.name))
+            return '{}'.format(self.current_user.name)
         else:
             return 'Anonymouse'
 
@@ -173,8 +241,8 @@ class Application(tornado.web.Application):
         self.db = db
         handlers = [
                     (r'/', IndexHandler), 
-                    (r'/bold',HelpPageHandler), 
-                    (r'/inb',InbPageHandler),
+                    (r'/blog/post',BlogPostHandler), 
+                    (r'/blog/read',BlogReadHandler),
                     (r"/auth/create", AuthCreateHandler),
                     (r"/auth/login", AuthLoginHandler),
                     (r"/auth/logout", AuthLogoutHandler)
@@ -184,9 +252,9 @@ class Application(tornado.web.Application):
             blog_title=u"Tornado Blog",
             template_path=os.path.join(os.path.dirname(__file__), "html"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            ui_modules={'Hello': HelloModule, 'UserName':UserModule},
+            ui_modules={'LogInOut': LoginModule, 'UserName':UserModule},
             xsrf_cookies=True,
-            cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+            cookie_secret="__TODO:_YOUR_OWN_RANDOM_VALUE_HERE__ABCDEFG.......",
             login_url="/auth/login",
             debug=True,
         )
@@ -197,7 +265,9 @@ class Application(tornado.web.Application):
 async def main():
     tornado.options.parse_command_line()
     # Create the global db connection .
-    db = sqlite3.connect('example.db')
+    dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
+
+    db = sqlite3.connect( dbname)  #    'example.db')
     db_init(db)
     app = Application(db)
     app.listen(options.port)

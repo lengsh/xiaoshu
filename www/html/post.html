@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+<div>Haha, </div>
+{% block title %} Hello,world {% end %}
+{% block headname %} my include template {% end %}
+
+{% block body %}
+
+  <form action="{{ request.path }}" method="post" class="compose">
+    <div style="margin-bottom:5px"><input name="title" type="text" class="title" value="{{ blog.title if blog else "" }}"/></div>
+    <div style="margin-bottom:5px"><textarea name="contents" rows="30" cols="40" class="markdown">{{ blog.contents if blog else "" }}</textarea></div>
+    <div>
+      <input type="submit" value="{{ _("Save changes") if blog else _("Publish post") }}" class="submit"/>
+    </div>
+    {% if blog %}
+      <input type="hidden" name="id" value="{{ blog.id }}"/>
+    {% end %}
+    {% module xsrf_form_html() %}
+  </form>
+
+{% include "foo.html" %}
+{% end %}
+{% include "foo.html" %}
+{#  上面的include讲不会被执行，因为不在block中 #}
+

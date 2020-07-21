@@ -1,0 +1,16 @@
+
+{% extends "base.html" %}
+{% block title %}Bold title{% end %}
+{% block headname %}Bold title{% end %}
+{% block body %}
+{% if blogs %}
+{% for s in blogs %}
+  <li><span style="bold">{{ s[0] }}</span></li>
+  <li><span style="bold">{{ s[1] }}</span></li>
+ <li><span style="bold"> {{ s[3] }}</span></li>
+
+{% end %}
+{% end %}
+{# 这是一段注释！！ #}
+{% end %}
+{% include "foo.html" %}

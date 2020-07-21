@@ -5,9 +5,8 @@
   </head>
   <body>
 <h2>{% block headname %} A template test {% end %}</h2>
-Hello,{% module UserName() %} <a href="/">Index</a> | <a href="/bold">Bold</a> | <a href="/inb">Inb</a> | <a href="/auth/login">login</a> | <a href="/auth/logout">logout</a> 
+Hello,{% module UserName() %} <a href="/">Index</a> | <a href="/blog/read">Read</a> | <a href="/blog/post">Post</a> | {% module LogInOut() %}
 
-{% module Hello() %}
     <ul>
         {% block body %}
         {% for student in students %}
@@ -16,16 +15,17 @@ Hello,{% module UserName() %} <a href="/">Index</a> | <a href="/bold">Bold</a> |
         {% end %}
     </ul>
   </body>
-  <div id="footer">
-    <headline></headline>
+<div id="footer">
+	<BR><BR>
+<headline> --- </headline>
 <!--done-->
+<br /><span id="poweredby">
 Copyright &copy; 2020 lengsh
-<br /><span id="poweredby">Powered by lengsh</span>
-{% set mailLink = '<a href="mailto:lengss@hotmail.com">Contact Us</a>' %}
-{% raw mailLink %} <BR>
-{% raw linkify("https://www.lengsh.cn", extra_params='ref=website') %}.
+</span><BR>
+{% set mailLink = '<a href="mailto:lengss@hotmail.com">Contact Me</a>' %}
+{% raw mailLink %}<BR> 
+{% raw linkify("https://www.lengsh.cn", extra_params='ref=abc.website') %}.
 </div><!--end: footer -->
-  
 
 </html>
 
