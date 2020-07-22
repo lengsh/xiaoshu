@@ -4,7 +4,6 @@
 {% block headname %}welcome post your message with PTBlog {% end %}
 
 {% block body %}
-
   <form action="{{ request.path }}" method="post" class="compose">
     <div style="margin-bottom:5px">Title:<input name="title" size=40 type="text" class="title" value="{{ blog.title if blog else "" }}"/></div>
     <div style="margin-bottom:5px">

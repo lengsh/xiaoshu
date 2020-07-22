@@ -174,15 +174,16 @@ def create_new_user(db, name, email, hash_password ):
     try:
         cur = db.cursor()
         cur.execute("SELECT Id FROM author ORDER BY Id DESC LIMIT 1")
-        if cur.fetchone() == None :
+        r= cur.fetchone()[0]
+        if r == None :
             id = 1
         else:
-            id = int( cur.fetchone()[0]  ) + 1
+            id = int( r ) + 1
         sql = "INSERT INTO author (Id, email, nickname, passwd) VALUES ({},{}, {}, {})".format(
-            id, email, name, hashed_password)
+            id, email, name, hash_password)
         logger.debug(sql)    
 
-        cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (?, ?, ?, ?)", (id, self.get_argument("email"), self.get_argument("name"), tornado.escape.to_unicode(hashed_password)))
+        cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (?, ?, ?, ?)", (id, email,name,hash_password,))
         db.commit()
         return id
     except sqlite3.Error as e:

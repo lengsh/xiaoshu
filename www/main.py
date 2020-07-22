@@ -94,7 +94,7 @@ class LoginModule(tornado.web.UIModule):
         if self.current_user :
             return '<a href="/auth/logout">Logout</a>'
         else:
-            return '<a href="/auth/login">Login</a>'
+            return '<a href="/auth/login">Login</a> | <a href="/auth/create">Regist</a>'
 
 class UserModule(tornado.web.UIModule):
     def render(self):
@@ -182,7 +182,6 @@ class Application(tornado.web.Application):
             debug=True,
         )
         super(Application, self).__init__(handlers, **settings)
-
 
 async def main():
     tornado.options.parse_command_line()

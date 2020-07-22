@@ -5,10 +5,19 @@
 <span style="color: red">Error: {{ error }}</span><p>
 {% end %}
 
-<form action="/auth/login" method="POST">
-  Email: <input name="email" type="text"><br>
-  Password: <input name="password" type="password"><br>
+<div  id="main"  align="center">
+  <table>
+    <form action="/auth/login" method="POST">
+<tr>
+  <td width=80> Email: </td><td width=200>  <input name="email" type="text"></td>
+</tr><tr>
+  <td > Password: </td><td>  <input name="password" type="password"></td>
+</tr><tr>
   {% module xsrf_form_html() %}
-  <input type="submit">
+  <td></td><td> <input type="submit"> </td>
 </form>
+</tr>
+</table> 
+</div>
+
 {% end %}

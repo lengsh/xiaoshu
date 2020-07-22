@@ -1,11 +1,24 @@
 {% extends "base.html" %}
 
 {% block body %}
-<form action="/auth/create" method="POST">
-  Email: <input name="email" type="text"><br>
-  Name: <input name="name" type="text"><br>
-  Password: <input name="password" type="password"><br>
-  {% module xsrf_form_html() %}
-  <input type="submit">
+
+<div  id="main"  align="center">
+<table>
+    <form action="/auth/create" method="POST">
+<tr>
+   <td width=80> Email: </td><td width=200>  <input name="email" type="text"></td>
+</tr><tr>
+   <td > Name: </td><td>  <input name="name" type="text"></td>
+</tr><tr>
+   <td > Password: </td><td>  <input name="password" type="password"></td>
+</tr><tr>
+   {% module xsrf_form_html() %}
+  <td></td><td> <input type="submit"> </td>
 </form>
+</tr>
+</table> 
+</div>
+
+
+</div>
 {% end %}
