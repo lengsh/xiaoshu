@@ -44,8 +44,7 @@ class IndexHandler(BaseHandler):
      def get(self):
         students = [dict(name='david'), dict(name='jack')]
         self.render('base.html',students=students, user=self.current_user )
-        
-
+                
 class BlogPostHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
