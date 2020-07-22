@@ -37,12 +37,7 @@ class BaseHandler(tornado.web.RequestHandler):
             return self.current_user
         
     async def any_author_exists(self ):
-        cur = self.application.db.cursor()
-        cur.execute("SELECT * FROM author LIMIT 1")
-        usr = cur.fetchone()
-        logger.debug("slect * from author , result = {}".format(usr))
-        return bool(usr)
-
+        return bloger.any_user_exists( self.application.db )
 
 class IndexHandler(BaseHandler):
      def get(self):
@@ -55,15 +50,7 @@ class BlogPostHandler(BaseHandler):
         id = self.get_argument("id", None)
         blog = None
         if id:
-            try:
-                cur = self.application.db.cursor()
-                pa = (int(id),)
-                cur.execute("SELECT * FROM blog WHERE id=?", pa)
-                usr = cur.fetchone()
-                if len(usr) > 0:
-                    blog = bloger.Bloge(usr[0], usr[1],usr[2],usr[3])
-            except Exception as e:
-                logger.error(e.args[0])
+            blog = bloger.get_blog_by_id(id)
         self.render("post.html", blog= blog)
 
     @tornado.web.authenticated
@@ -71,66 +58,41 @@ class BlogPostHandler(BaseHandler):
         contents = self.get_argument("contents", None)
         id = self.get_argument("id", None)
         title = self.get_argument("title", None)
-        cur = self.application.db.cursor()
-        try:
-           # update 
-            if id:
+        # update 
+        if id:
                 # update 
-                sql ="UPDATE blog SET title = {}, contents = {} WHERE id = {}".format(title, contents , int(id))
-                logger.debug(sql) 
-                cur.execute(
-                "UPDATE blog SET title = ?, contents = ? "
-                "WHERE id = ?", (title, contents , int(id),)
-                )
-            else:
+            bloger.post_update_blog(self.application.db, id, title, contents)    
+        else:
                 # insert
-                cur.execute("SELECT Id FROM blog order by Id desc limit 1")
-                if cur.fetchone() == None :
-                    id = 1
-                else:
-                    id = int( cur.fetchone()[0]  ) + 1
-
-                sql="INSERT INTO blog (Id,uId,title,contents) VALUES ({},{},{},{})".format(
-                        id, self.current_user.id, title, contents)
-                logger.debug(sql)
-                cur.execute(
-                        "INSERT INTO blog (Id,uId,title,contents)" 
-                        "VALUES (?,?,?,?)",(id, self.current_user.id, title, contents,))
-        
-            self.application.db.commit()
-        except Exception as e:
-            logger.error(e.args[0])
-        finally:
-            self.redirect("/blog/read")
+            bloger.post_new_blog(self.application.db, self.current_user.id, title, contents)
+        self.redirect("/blog/read")
 
 class BlogReadHandler(BaseHandler):
      @tornado.web.authenticated
      def get(self):
-        #self.render('inb.html',students=students)
         blogs = None
-        id = self.get_argument("id", None)
-        cur = self.application.db.cursor()
-        try:
-            if id:
-                 blogs = cur.execute("SELECT * FROM blog WHERE id=?", (int(id),))
-            else:
-                page = self.get_argument("page", None)
-                if page == None :
-                    page = 0
-                cur.execute("SELECT * FROM blog order by id desc limit ?,10", (10*int(page),))
-                blogs = cur.fetchall()
-                logger.debug(blogs)
-        except Exception as e:
-            logger.error(e.args[0])
-        finally:
-            self.render("read.html", blogs = blogs )
+        id = self.get_argument("id", None) 
+        page = self.get_argument("page", None) 
+        if id != None :
+            blog = bloger.get_blog_by_id(self.application.db, int(id))
+            if blog :
+                blogs = list()
+                blogs.append(blog)
+        else :
+            if page == None:
+                page = 0
+            blogs = bloger.get_blogs_by_page( self.application.db, int(page) )
+        
+        self.render("read.html", blogs = blogs )
+
+
 
 class LoginModule(tornado.web.UIModule):
     def render(self):
         if self.current_user :
-            return '<a href="/auth/logout">logout</a>'
+            return '<a href="/auth/logout">Logout</a>'
         else:
-            return '<a href="/auth/login">login</a>'
+            return '<a href="/auth/login">Login</a>'
 
 class UserModule(tornado.web.UIModule):
     def render(self):
@@ -153,30 +115,14 @@ class AuthCreateHandler(BaseHandler):
             tornado.escape.utf8(self.get_argument("password")),
             bcrypt.gensalt(),
         )
-        id = 0
-        try:
-            cur = self.application.db.cursor()
-            cur.execute("SELECT Id FROM author order by Id desc limit 1")
-            if cur.fetchone() == None :
-                id = 1
-            else:
-                id = int( cur.fetchone()[0]  ) + 1
-            sql = "INSERT INTO author (Id, email, nickname, passwd) values ({},{}, {}, {})".format(id, self.get_argument("email"),
-                self.get_argument("name"),
-                tornado.escape.to_unicode(hashed_password))
-            logger.debug(sql)    
+       
+        email = self.get_argument("email", None)
+        name = self.get_argument("name", None)
+        uni_hash_passwd = tornado.escape.to_unicode(hashed_password)
+        id = bloger.create_new_user(self.application.db, name, email, uni_hash_passwd)
+        if id :
+            self.set_secure_cookie("blog_user", "{}|{}".format(str(id), name) )
 
-            cur.execute("INSERT INTO author (Id, email, nickname, passwd) values (?, ?, ?, ?)", (id, self.get_argument("email"), self.get_argument("name"), tornado.escape.to_unicode(hashed_password)))
-
-            self.application.db.commit()
-        except sqlite3.Error as e:
-            logger.error(e.args[0])
-        finally:
-            pass
-
-        logger.debug("{}".format(id))
-        # self.set_secure_cookie("blog_user", str(id))
-        self.set_secure_cookie("blog_user", "{}|{}".format(str(id), self.get_argument("name")) )
         self.redirect(self.get_argument("next", "/"))
 
 class AuthLoginHandler(BaseHandler):
@@ -188,29 +134,19 @@ class AuthLoginHandler(BaseHandler):
             self.render("login.html", error=None)
 
     async def post(self):
-        try:
-            cur = self.application.db.cursor()
-            sql = "SELECT * FROM author WHERE email = '{}'".format(self.get_argument("email")) 
-            
-            logger.debug( sql )
-            cur.execute( sql )
-            author = cur.fetchone() 
-            logger.debug( author )
-        except sqlite3.Error as e:
-            logger.error(e.args[0])
-            self.render("login.html", error="email not found ")
-            return
-        if author == None or author[3] == None:
-            self.render("login.html", error="no such user")
+        email = self.get_argument("email")
+        user = bloger.get_user_by_email(email)
+        if user == None:
+            self.render("login.html", error="no such user ")
             return
         password_equal = await tornado.ioloop.IOLoop.current().run_in_executor(
             None,
             bcrypt.checkpw,
             tornado.escape.utf8(self.get_argument("password")),
-            tornado.escape.utf8(author[3]),
+            tornado.escape.utf8( user.upasswd ),
         )
         if password_equal:
-            self.set_secure_cookie("blog_user", "{}|{}".format(str(author[0]), author[2]) )
+            self.set_secure_cookie("blog_user", "{}|{}".format(str(user.id),  user.name ) )
             self.redirect(self.get_argument("next", "/"))
         else:
             self.render("login.html", error="incorrect password")
@@ -220,21 +156,6 @@ class AuthLogoutHandler(BaseHandler):
         self.clear_cookie("blog_user")
         self.redirect(self.get_argument("next", "/"))
 
-
-def db_init(db ):
-# Create table
-    try:
-        c = db.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS
-             author(Id INT PRIMARY KEY  NOT NULL, email text, nickname text, passwd text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS
-             blog(Id int PRIMARY KEY  NOT NULL, title text, uId int, contents text)''')
-        c.execute('''CREATE INDEX index_author ON author(email)''')
-        db.commit()
-    except sqlite3.Error as e:
-        print("Error, when db_init! {}".format(e.args[0]))
-    finally:
-        pass
 
 class Application(tornado.web.Application):
     def __init__(self, db):
@@ -268,7 +189,7 @@ async def main():
     dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
 
     db = sqlite3.connect( dbname)  #    'example.db')
-    db_init(db)
+    bloger.blog_db_init(db)
     app = Application(db)
     app.listen(options.port)
         # In this demo the server will simply run until interrupted

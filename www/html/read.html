@@ -5,10 +5,12 @@
 {% block body %}
 {% if blogs %}
 {% for s in blogs %}
-  <li><span style="bold">{{ s[0] }}</span></li>
-  <li><span style="bold">{{ s[1] }}</span></li>
- <li><span style="bold"> {{ s[3] }}</span></li>
-
+{{ s.title }}<br>
+  <li><span style="bold">{{ s.id }}</span></li>
+  <li><span style="bold">{{ s.uId }}</span></li>
+ <br> 
+ {{ s.contents }}
+<BR>
 {% end %}
 {% end %}
 {# 这是一段注释！！ #}
