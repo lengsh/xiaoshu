@@ -22,6 +22,22 @@ define("port",default=8080,help="on the given help", type="int")
 logger.add("log.log", retention="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
 class BaseHandler(tornado.web.RequestHandler):
+    async def prepare(self):
+         # get_current_user cannot be a coroutine, so set
+         # self.current_user in prepare instead.
+        cookies =  self.get_secure_cookie("blog_user")
+        logger.debug("blog_user cookie = {}".format( cookies ))
+        if cookies == None :
+            return
+        rets = str(cookies, encoding="utf8")
+        logger.debug(rets)
+        ret = rets.split("|", 1)
+        logger.debug("current user = {}".format(ret))
+        if len(ret)>= 2:
+            user = bloger.Author(int(ret[0]), str(ret[1]),'')
+            self.current_user = user
+            
+    '''            
     def get_current_user(self):
         cookies =  self.get_secure_cookie("blog_user")
         logger.debug("blog_user cookie = {}".format( cookies ))
@@ -36,7 +52,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.current_user = user
             logger.debug("current user id={}, name={}".format(ret[0], ret[1]))
             return self.current_user
-        
+    '''
     async def any_author_exists(self ):
         return bloger.any_user_exists( self.application.db )
 
@@ -47,7 +63,7 @@ class IndexHandler(BaseHandler):
                 
 class BlogPostHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self):
+    async def get(self):
         id = self.get_argument("id", None)
         blog = None
         if id:
@@ -55,7 +71,7 @@ class BlogPostHandler(BaseHandler):
         self.render("post.html", blog= blog)
 
     @tornado.web.authenticated
-    def post(self):
+    async def post(self):
         contents = self.get_argument("contents", None)
         id = self.get_argument("id", None)
         title = self.get_argument("title", None)
@@ -70,7 +86,7 @@ class BlogPostHandler(BaseHandler):
 
 class BlogReadHandler(BaseHandler):
      @tornado.web.authenticated
-     def get(self):
+     async def get(self):
         blogs = None
         id = self.get_argument("id", None) 
         page = self.get_argument("page", None) 
@@ -197,7 +213,7 @@ async def main():
     shutdown_event = tornado.locks.Event()
     def shutdown( signum, frame ):
 
-        logger.error("graceful shutdown?!!!! signum={}, frame = {}".format(signum, frame))
+        logger.error("graceful shutdown?!!!! signum={}".format(signum))
         logger.error("clear all memery and  shutdown  database !!!!")
         db.close()
         shutdown_event.set()
