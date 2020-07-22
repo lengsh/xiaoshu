@@ -6,6 +6,7 @@ from loguru import logger
 import time
 import sqlite3
 import bcrypt
+import asyncio
 
 logger.add(
     "log.log",
@@ -72,7 +73,13 @@ before ......
     finally:
         pass
 
+'''
+async def fetchall_async(conn, query):
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        None, lambda: conn.cursor().execute(query).fetchall())
 
+'''
 def get_blog_by_id(db, id):
     blog = None
     cur = db.cursor()
@@ -216,6 +223,7 @@ def get_user_name_by_id(db, id):
     return (author[0],author[1])
     
 
+
 if __name__ == "__main__":
     dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
     db = sqlite3.connect(dbname)  #    'example.db')
@@ -226,3 +234,8 @@ if __name__ == "__main__":
     blogs = get_blogs_by_page(db, 0)
     for r in blogs:
         print(r)
+
+    print(rd)
+
+
+

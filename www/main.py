@@ -15,6 +15,7 @@ import tornado.httpclient
 import sqlite3
 import bcrypt
 import bloger
+import signal
 
 from tornado.options import  options,define 
 define("port",default=8080,help="on the given help", type="int")
@@ -43,6 +44,7 @@ class IndexHandler(BaseHandler):
      def get(self):
         students = [dict(name='david'), dict(name='jack')]
         self.render('base.html',students=students, user=self.current_user )
+        
 
 class BlogPostHandler(BaseHandler):
     @tornado.web.authenticated
@@ -182,7 +184,6 @@ class Application(tornado.web.Application):
         super(Application, self).__init__(handlers, **settings)
 
 
-
 async def main():
     tornado.options.parse_command_line()
     # Create the global db connection .
@@ -196,10 +197,20 @@ async def main():
         # with Ctrl-C, but if you want to shut down more gracefully,
         # call shutdown_event.set().
     shutdown_event = tornado.locks.Event()
+    def shutdown( signum, frame ):
+
+        logger.error("graceful shutdown?!!!! signum={}, frame = {}".format(signum, frame))
+        logger.error("clear all memery and  shutdown  database !!!!")
+        db.close()
+        shutdown_event.set()
+
+
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
+
     await shutdown_event.wait()
-    print("shutdown -h now")
-    shutdown_event.set()
+    print("\n\nshutdown -h now\n\n")
 
 if __name__ == "__main__":
     tornado.ioloop.IOLoop.current().run_sync(main)
-    print("Exit...")
+

@@ -69,6 +69,7 @@ Hello,{% module UserName() %} <a href="/">Index</a> | <a href="/blog/read">Read<
 </div>
     <ul>
         {% block body %}
+        Welcome {%  user %}
         {% for student in students %}
           <li>Hi {{ escape(student['name']) }}</li>
         {% end %}
