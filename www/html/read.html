@@ -3,6 +3,9 @@
 {% block title %}PTBlog reader{% end %}
 {% block headname %}Python blog with tornado{% end %}
 {% block body %}
+
+<table align = center><tr> <td>
+  
 {% if blogs %}
 {% for s in blogs %}
 
@@ -16,8 +19,12 @@
    {{ s.contents }}
 </div>
 <BR>
-{% end %}
-{% end %}
+  {% end %}
+  {% end %}
+
+</td> </tr>
+</table>
+
 {# 这是一段注释！！ #}
 {% end %}
 {% include "foo.html" %}

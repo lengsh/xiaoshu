@@ -4,6 +4,7 @@
 {% block headname %}welcome post your message with PTBlog {% end %}
 
 {% block body %}
+<table align = center><tr> <td width=300 >
   <form action="{{ request.path }}" method="post" class="compose">
     <div style="margin-bottom:5px">Title:<input name="title" size=40 type="text" class="title" value="{{ blog.title if blog else "" }}"/></div>
     <div style="margin-bottom:5px">
@@ -17,7 +18,8 @@
     {% end %}
     {% module xsrf_form_html() %}
   </form>
-
+</td> </tr>
+</table>
 {% include "foo.html" %}
 {% end %}
 {% include "foo.html" %}
