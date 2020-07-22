@@ -3,6 +3,7 @@
 {% block body %}
 
 <div  id="main"  align="center">
+<BR><BR>
 <table>
     <form action="/auth/create" method="POST">
 <tr>
@@ -11,6 +12,7 @@
    <td > Name: </td><td>  <input name="name" type="text"></td>
 </tr><tr>
    <td > Password: </td><td>  <input name="password" type="password"></td>
+</tr><tr> <td></td><td>  </td>
 </tr><tr>
    {% module xsrf_form_html() %}
   <td></td><td> <input type="submit"> </td>

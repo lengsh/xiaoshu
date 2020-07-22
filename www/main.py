@@ -21,6 +21,7 @@ from tornado.options import  options,define
 define("port",default=8080,help="on the given help", type="int")
 logger.add("log.log", retention="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
+
 class BaseHandler(tornado.web.RequestHandler):
     async def prepare(self):
          # get_current_user cannot be a coroutine, so set
@@ -109,7 +110,7 @@ class LoginModule(tornado.web.UIModule):
         if self.current_user :
             return '<a href="/auth/logout">Logout</a>'
         else:
-            return '<a href="/auth/login">Login</a> | <a href="/auth/create">Regist</a>'
+            return '<a href="/auth/login">Login</a> / <a href="/auth/create">Create account</a>'
 
 class UserModule(tornado.web.UIModule):
     def render(self):
@@ -125,7 +126,7 @@ class AuthCreateHandler(BaseHandler):
 
     async def post(self):
         #if await self.any_author_exists():
-        #    raise tornado.web.HTTPError(400, "author already created")
+        # raise tornado.web.HTTPError(400, "author already created")
         hashed_password = await tornado.ioloop.IOLoop.current().run_in_executor(
             None,
             bcrypt.hashpw,
@@ -144,14 +145,18 @@ class AuthCreateHandler(BaseHandler):
 
 class AuthLoginHandler(BaseHandler):
     async def get(self):
+        next = tornado.escape.url_escape(self.get_argument("next", "/"))
+        logger.debug("next = {}".format(next))
         # If there are no authors, redirect to the account creation page.
         if not await self.any_author_exists():
             self.redirect("/auth/create")
         else:
-            self.render("login.html", error=None)
+            self.render("login.html", error=None, next=next)
 
     async def post(self):
         email = self.get_argument("email", None)
+        next = self.get_argument("next", "/")
+        logger.debug("next = {}".format(next))
         user = bloger.get_user_by_email(self.application.db, email)
         if user == None:
             self.render("login.html", error="no such user ")
