@@ -1,15 +1,20 @@
 
 {% extends "base.html" %}
-{% block title %}Bold title{% end %}
-{% block headname %}Bold title{% end %}
+{% block title %}PTBlog reader{% end %}
+{% block headname %}Python blog with tornado{% end %}
 {% block body %}
 {% if blogs %}
 {% for s in blogs %}
-{{ s.title }}<br>
-  <li><span style="bold">{{ s.id }}</span></li>
-  <li><span style="bold">{{ s.uId }}</span></li>
- <br> 
- {{ s.contents }}
+
+<div id="blog-title"> 
+  <a href="/blog/post?id={{ s.id }}"> {{ s.title }} </a>
+</div>
+<div id="blog-author"> 
+ 作者：{{ s.author }},[{{ s.uId }} ]
+</div>
+<div id="blog-content"> 
+   {{ s.contents }}
+</div>
 <BR>
 {% end %}
 {% end %}

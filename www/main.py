@@ -50,7 +50,7 @@ class BlogPostHandler(BaseHandler):
         id = self.get_argument("id", None)
         blog = None
         if id:
-            blog = bloger.get_blog_by_id(id)
+            blog = bloger.get_blog_by_id( self.application.db, int(id))
         self.render("post.html", blog= blog)
 
     @tornado.web.authenticated
@@ -134,8 +134,8 @@ class AuthLoginHandler(BaseHandler):
             self.render("login.html", error=None)
 
     async def post(self):
-        email = self.get_argument("email")
-        user = bloger.get_user_by_email(email)
+        email = self.get_argument("email", None)
+        user = bloger.get_user_by_email(self.application.db, email)
         if user == None:
             self.render("login.html", error="no such user ")
             return
