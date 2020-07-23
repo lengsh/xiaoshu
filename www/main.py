@@ -298,12 +298,12 @@ async def main():
     # Create the global db connection .
     dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
 
-    if options.port > 0 :
+    if options.dbinit > 0 :
         os.remove( dbname)
 
     db = sqlite3.connect( dbname)  #    'example.db')
 
-    if options.port > 0 :
+    if options.dbinit > 0 :
         myblog.blog_db_init(db)
 
     app = Application(db)
