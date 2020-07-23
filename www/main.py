@@ -63,9 +63,11 @@ class BaseHandler(tornado.web.RequestHandler):
         return await myblog.any_user_exists( self.application.db )
 
 class IndexHandler(BaseHandler):
-    def get(self):
+    async def get(self):
+        users = await myblog.get_last_users( self.application.db )
         students = [dict(name='david'), dict(name='jack')]
-        self.render('base.html',students=students, user=self.current_user )
+        self.render('base.html',students=students, users=users )
+
 
 class ServiceHandler(BaseHandler):
     @tornado.web.authenticated

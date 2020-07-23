@@ -73,13 +73,20 @@ Hello,{% module UserName() %} <a href="/">Index</a> | <a href="/blog/read">Read<
 {% block body %}
 <BR><BR>
       <table align=center>
-        <tr><td width=200 >
-          {% if user %}
-          <h2> Welcome {{  escape(user.name) }} </h2>
-          {% end %}
-        </td> </tr>
+        <tr><td width=200 > </td> </tr>
+        
+        {% if users %}
+          
+        {% for usr in users %}
+        <tr><td>  <li> {{ escape(usr.name) }} [ {{ escape(usr.email ) }}] </li> </td> </tr>
+        {% end %}
+
+        {% else %}
+       
         {% for student in students %}
         <tr><td>  <li>Hi {{ escape(student['name']) }}</li> </td> </tr>
+        {% end %}
+
         {% end %}
       </table>
       <BR>

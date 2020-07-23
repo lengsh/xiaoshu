@@ -234,7 +234,21 @@ async def get_user_name_by_id(db, id):
         return None
         
     return (author[0],author[1])
-    
+
+async def get_last_users(db, counts=10):
+    try:
+        users = list()
+        cur = db.cursor()
+        cur.execute( "SELECT Id, nickname, email FROM author ORDER BY Id DESC LIMIT 0,?",(counts,)  )
+        rets = cur.fetchall()
+        if len(rets) > 0:
+            for r in rets:
+                users.append( Author(int(r[0]), str(r[1]), str(r[2])))
+    except sqlite3.Error as e:
+        logger.error(e.args[0])
+        return None
+    return users
+
 async def main():
     dbname = os.path.join(os.path.dirname(__file__), "example.db")
     db = sqlite3.connect(dbname)  #    'example.db')
