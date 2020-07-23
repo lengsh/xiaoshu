@@ -295,13 +295,27 @@ class Application(tornado.web.Application):
 
 async def main():
     tornado.options.parse_command_line()
+    
     # Create the global db connection .
+    # sqlite3 block ###################################################################
     dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
-
     if options.dbinit > 0 :
         os.remove( dbname)
-
+        os.mkdir(os.path.join(os.path.dirname(__file__), "db"))
+    elif os.path.exists( os.path.join(os.path.dirname(__file__), "db") ) == False:
+        os.mkdir(os.path.join(os.path.dirname(__file__), "db"))
+        options.dbinit = 1
     db = sqlite3.connect( dbname)  #    'example.db')
+
+    # mySQL block ######################################################################
+    # 
+    #
+    #
+    # postgreSQL block #################################################################
+    # 
+    #
+    #
+
 
     if options.dbinit > 0 :
         myblog.blog_db_init(db)
