@@ -92,13 +92,6 @@ before ......
     finally:
         pass
 
-'''
-async def fetchall_async(conn, query):
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(
-        None, lambda: conn.cursor().execute(query).fetchall())
-
-'''
 async def get_blog_by_id(db, id):
     blog = None
     cur = db.cursor()
@@ -177,7 +170,7 @@ async def any_user_exists(db , email = ''):
     if len(email) > 4 :
         sql = "SELECT Id FROM author WHERE email='{}'".format(email)
     try:
-        cur.execute(sql)
+        cur.execute( sql )
         usr = cur.fetchone()
     except Exception as e:
         logger.error(e.args)
@@ -193,11 +186,11 @@ async def create_new_user(db, name, email, hash_password ):
     try:
         cur = db.cursor()
         cur.execute("SELECT Id FROM author ORDER BY Id DESC LIMIT 1")
-        r= cur.fetchone()[0]
+        r = cur.fetchone()
         if r == None :
             id = 1
         else:
-            id = int( r ) + 1
+            id = int( r[0] ) + 1
         sql = "INSERT INTO author (Id, email, nickname, passwd) VALUES ({},{}, {}, {})".format(
             id, email, name, hash_password)
         logger.debug(sql)    
@@ -220,7 +213,7 @@ async def get_user_by_email(db, email):
     except sqlite3.Error as e:
         logger.error(e.args[0])
         return None
-    if author == None or author[3] == None:
+    if author == None :
         return None
         
     user = Author( author[0], author[1], author[2], author[3] )
@@ -237,7 +230,7 @@ async def get_user_name_by_id(db, id):
     except sqlite3.Error as e:
         logger.error(e.args[0])
         return None
-    if author == None or author[0] == None:
+    if author == None:
         return None
         
     return (author[0],author[1])
