@@ -7,6 +7,11 @@
 <table align = center><tr> <td>
   
 {% if blogs %}
+</td></tr><tr><td>
+<div align=center style="font-size:10px;">
+<a href="http://{{ request.host  }}/blog/read?rpc=0 "> RPC-GET </a> | <a href="http://{{ request.host  }}/blog/read?rpc=1"> RPC-POST </a>
+</div>
+
 {% for s in blogs %}
 
 <div id="blog-title"> 

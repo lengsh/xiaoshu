@@ -49,6 +49,18 @@ class Bloge:
     def __str__(self):
         return "{},{},{},{}".format(self.id, self.uId, self.title, self.contents)
 
+def Blog_to_json(obj):
+    return {
+        "id": obj.id,
+        "uId": obj.uId,
+        "title": obj.title,
+        "contents": obj.contents,
+        "author": obj.author
+    }
+
+def Blog_from_json(d):
+    return  Bloge( d["id"], d["uId"], d["title"], d["contents"], d["author"])
+
 
 def blog_db_init(db):
     """
