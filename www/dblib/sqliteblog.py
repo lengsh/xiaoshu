@@ -8,6 +8,13 @@ import sqlite3
 import bcrypt
 import asyncio
 
+'''
+此处使用的sqlite3，应该不需要采用协程（异步支持）。
+但，为了上层调用 mysql/postgresql (aiomysql/aiopg) 的异步能力保持一致的编码，所以这里也都给函数做了 rsync 标注。
+
+
+'''
+
 logger.add(
     "log.log",
     retention="1 days",
@@ -92,7 +99,7 @@ async def fetchall_async(conn, query):
         None, lambda: conn.cursor().execute(query).fetchall())
 
 '''
-def get_blog_by_id(db, id):
+async def get_blog_by_id(db, id):
     blog = None
     cur = db.cursor()
     try:
@@ -108,8 +115,8 @@ def get_blog_by_id(db, id):
     return blog
 
 
-def get_blogs_by_page(db, page):
-    blogs = None
+async def get_blogs_by_page(db, page):
+    blogs = list()
     if page == None:
         page = 0
     else:
@@ -122,14 +129,14 @@ def get_blogs_by_page(db, page):
         cur.execute(sql)
         rets = cur.fetchall()
         if len(rets) > 0:
-            blogs = list()
             for r in rets:
                 blogs.append(Bloge(int(r[0]), int(r[1]), str(r[2]), str(r[3]), str(r[4])))
     except Exception as e:
         logger.error(e.args)
-    return blogs
+    finally:
+        return blogs
 
-def post_new_blog(db, uid, title, contents):
+async def post_new_blog(db, uid, title, contents):
     try:
         cur = db.cursor()
         cur.execute("SELECT Id FROM blog ORDER BY Id DESC LIMIT 1")
@@ -151,7 +158,7 @@ def post_new_blog(db, uid, title, contents):
         return False
     return True
 
-def post_update_blog(db, id, title, contents):
+async def post_update_blog(db, id, title, contents):
     try:
         cur = db.cursor()
         sql ="UPDATE blog SET title = '{}', contents = '{}' WHERE Id = {}".format(title, contents , int(id))
@@ -164,7 +171,7 @@ def post_update_blog(db, id, title, contents):
     return True
 
 
-def any_user_exists(db , email = ''):
+async def any_user_exists(db , email = ''):
     cur = db.cursor()
     sql = "SELECT Id FROM author LIMIT 1"
     if len(email) > 4 :
@@ -178,7 +185,7 @@ def any_user_exists(db , email = ''):
     logger.debug("{} , result = {}".format(sql, usr))
     return bool(usr)    
 
-def create_new_user(db, name, email, hash_password ):
+async def create_new_user(db, name, email, hash_password ):
     id = 0
     if any_user_exists(db, email) == False:
         logger.error("{} is exist, return error".format(email))
@@ -202,7 +209,7 @@ def create_new_user(db, name, email, hash_password ):
         logger.error(e.args[0])
         return None
 
-def get_user_by_email(db, email):
+async def get_user_by_email(db, email):
     try:
         cur = db.cursor()
         sql = "SELECT Id, nickname , email, passwd FROM author WHERE email = '{}'".format(email) 
@@ -219,7 +226,7 @@ def get_user_by_email(db, email):
     user = Author( author[0], author[1], author[2], author[3] )
     return user
 
-def get_user_name_by_id(db, id):
+async def get_user_name_by_id(db, id):
     try:
         cur = db.cursor()
         sql = "SELECT nickname, email FROM author WHERE Id = '{}'".format(id) 
@@ -235,20 +242,17 @@ def get_user_name_by_id(db, id):
         
     return (author[0],author[1])
     
-
-
-if __name__ == "__main__":
-    dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
+async def main():
+    dbname = os.path.join(os.path.dirname(__file__), "example.db")
     db = sqlite3.connect(dbname)  #    'example.db')
-
-    blog = get_blog_by_id(db, 1)
+    blog_db_init(db)
+    blog = await get_blog_by_id(db, 1)
     print(blog)
 
-    blogs = get_blogs_by_page(db, 0)
-    for r in blogs:
-        print(r)
+    blogs = await get_blogs_by_page(db, 0)
+    if blogs:
+        for r in blogs:
+            print(r)
 
-    print(rd)
-
-
-
+if __name__ == "__main__":
+    asyncio.run(main())

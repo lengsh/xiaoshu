@@ -21,7 +21,9 @@ import dblib.sqliteblog as myblog
 #import dblib.postgreblog as myblog
 
 from tornado.options import  options,define 
-define("port",default=8080,help="on the given help", type="int")
+define("port",default=8080,help="server listen port", type=int)
+define("dbinit",default=0,help="if need to init db, 0:No; 1:Yes", type=int)
+
 logger.add("log.log", retention="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
 
@@ -58,7 +60,7 @@ class BaseHandler(tornado.web.RequestHandler):
             return self.current_user
     '''
     async def any_author_exists(self ):
-        return myblog.any_user_exists( self.application.db )
+        return await myblog.any_user_exists( self.application.db )
 
 class IndexHandler(BaseHandler):
     def get(self):
@@ -68,18 +70,17 @@ class IndexHandler(BaseHandler):
 class ServiceHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self):
-        blogs = None
+        blogs = list()
         id = self.get_argument("id", None) 
         page = self.get_argument("page", None) 
         if id != None :
-            blog = myblog.get_blog_by_id(self.application.db, int(id))
+            blog = await myblog.get_blog_by_id(self.application.db, int(id))
             if blog :
-                blogs = list()
                 blogs.append(blog)
         else :
             if page == None:
                 page = 0
-            blogs = myblog.get_blogs_by_page( self.application.db, int(page) )
+            blogs = await myblog.get_blogs_by_page( self.application.db, int(page) )
         body = json.dumps( blogs, default=myblog.Blog_to_json, ensure_ascii=False)
         # blogs = json.loads( body, object_hook=myblog.Blog_from_json)
         logger.debug("service GET:", body )
@@ -89,18 +90,17 @@ class ServiceHandler(BaseHandler):
 
     @tornado.web.authenticated
     async def post(self):
-        blogs = None
+        blogs = list()
         id = self.get_argument("id", None) 
         page = self.get_argument("page", None) 
         if id != None :
-            blog = myblog.get_blog_by_id(self.application.db, int(id))
+            blog = await myblog.get_blog_by_id(self.application.db, int(id))
             if blog :
-                blogs = list()
                 blogs.append(blog)
         else :
             if page == None:
                 page = 0
-            blogs = myblog.get_blogs_by_page( self.application.db, int(page) )
+            blogs = await myblog.get_blogs_by_page( self.application.db, int(page) )
         body = json.dumps( blogs, default=myblog.Blog_to_json, ensure_ascii=False)
         # blogs = json.loads( body, object_hook=myblog.Blog_from_json)
         logger.debug("service:POST: ", body )
@@ -114,7 +114,7 @@ class BlogPostHandler(BaseHandler):
         id = self.get_argument("id", None)
         blog = None
         if id:
-            blog = myblog.get_blog_by_id( self.application.db, int(id))
+            blog = await myblog.get_blog_by_id( self.application.db, int(id))
         self.render("post.html", blog= blog)
 
     @tornado.web.authenticated
@@ -125,16 +125,16 @@ class BlogPostHandler(BaseHandler):
         # update 
         if id:
                 # update 
-            myblog.post_update_blog(self.application.db, id, title, contents)    
+            await myblog.post_update_blog(self.application.db, id, title, contents)    
         else:
                 # insert
-            myblog.post_new_blog(self.application.db, self.current_user.id, title, contents)
+            await myblog.post_new_blog(self.application.db, self.current_user.id, title, contents)
         self.redirect("/blog/read")
 
 class BlogReadHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self):
-        blogs = None
+        blogs = list()
         id = self.get_argument("id", None) 
         page = self.get_argument("page", None) 
         rpc = self.get_argument("rpc", None) 
@@ -145,14 +145,13 @@ class BlogReadHandler(BaseHandler):
 
         else:
             if id != None :
-                blog = myblog.get_blog_by_id(self.application.db, int(id))
+                blog = await myblog.get_blog_by_id(self.application.db, int(id))
                 if blog :
-                    blogs = list()
                     blogs.append(blog)
             else :
                 if page == None:
                     page = 0
-                blogs = myblog.get_blogs_by_page( self.application.db, int(page) )
+                blogs = await myblog.get_blogs_by_page( self.application.db, int(page) )
         
         self.render("read.html", blogs = blogs )
 
@@ -227,7 +226,7 @@ class AuthCreateHandler(BaseHandler):
         email = self.get_argument("email", None)
         name = self.get_argument("name", None)
         uni_hash_passwd = tornado.escape.to_unicode(hashed_password)
-        id = myblog.create_new_user(self.application.db, name, email, uni_hash_passwd)
+        id = await myblog.create_new_user(self.application.db, name, email, uni_hash_passwd)
         if id :
             self.set_secure_cookie("blog_user", "{}|{}".format(str(id), name) )
 
@@ -247,7 +246,7 @@ class AuthLoginHandler(BaseHandler):
         email = self.get_argument("email", None)
         next = self.get_argument("next", "/")
         logger.debug("next = {}".format(next))
-        user = myblog.get_user_by_email(self.application.db, email)
+        user = await myblog.get_user_by_email(self.application.db, email)
         if user == None:
             self.render("login.html", error="no such user ")
             return
@@ -299,8 +298,14 @@ async def main():
     # Create the global db connection .
     dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
 
+    if options.port > 0 :
+        os.remove( dbname)
+
     db = sqlite3.connect( dbname)  #    'example.db')
-    myblog.blog_db_init(db)
+
+    if options.port > 0 :
+        myblog.blog_db_init(db)
+
     app = Application(db)
     app.listen(options.port)
         # In this demo the server will simply run until interrupted
