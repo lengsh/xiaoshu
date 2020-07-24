@@ -69,7 +69,7 @@ def Blog_from_json(d):
     return  Bloge( d["id"], d["uId"], d["title"], d["contents"], d["author"])
 
 
-def blog_db_init(db):
+async def blog_db_init(db):
     """
 Create db and tables;
 
@@ -180,7 +180,7 @@ async def any_user_exists(db , email = ''):
 
 async def create_new_user(db, name, email, hash_password ):
     id = 0
-    if any_user_exists(db, email) == False:
+    if any_user_exists(db, email) == True:
         logger.error("{} is exist, return error".format(email))
         return None
     try:
@@ -262,4 +262,10 @@ async def main():
             print(r)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # when python3 > 3.7
+    #asyncio.run(main())
+    # when < python3.7
+    loop = asyncio.get_event_loop()
+    # Blocking call which returns when the hello_world() coroutine is done
+    loop.run_until_complete( main())
+    loop.close()

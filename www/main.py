@@ -12,14 +12,17 @@ from  loguru import logger
 import time
 from tornado import gen
 import tornado.httpclient
-import sqlite3
 import bcrypt
 import signal
 import json
+
+import sqlite3
 import dblib.sqliteblog as myblog
+
+#import aiomysql
 #import dblib.mysqlblog as myblog
+
 #import dblib.postgreblog as myblog
-import logging
 
 from tornado.options import  options,define 
 define("port",default=8080,help="server listen port", type=int)
@@ -326,6 +329,7 @@ async def main():
     
     # Create the global db connection .
     # sqlite3 block ###################################################################
+    
     dbname = os.path.join(os.path.dirname(__file__), "db", "example.db")
     if options.dbinit > 0 :
         os.remove( dbname)
@@ -334,18 +338,18 @@ async def main():
         os.mkdir(os.path.join(os.path.dirname(__file__), "db"))
         options.dbinit = 1
     db = sqlite3.connect( dbname)  #    'example.db')
-
+    
     # mySQL block ######################################################################
-    # 
-    #
-    #
+     
+    #db = await aiomysql.connect(host='127.0.0.1', port=3306, user='root', password='', db='blog')
+    
     # postgreSQL block #################################################################
     # 
     #
     #
 
     if options.dbinit > 0 :
-        myblog.blog_db_init(db)
+        await myblog.blog_db_init(db)
 
     app = Application(db)
     app.listen(options.port)
