@@ -14,14 +14,14 @@ import asyncio
 
 
 '''
-
+'''
 logger.add(
     "log.log",
     retention="1 days",
     colorize=True,
     format="<green>{time}</green> <level>{message}</level>",
 )
-
+'''
 
 class Author:
     """
@@ -104,7 +104,9 @@ async def get_blog_by_id(db, id):
             if len(ret) > 0:
                 blog = Bloge(int(ret[0]), int(ret[1]), str(ret[2]), str(ret[3]), str(ret[4]))
     except Exception as e:
-        logger.error(e.args[0])
+        logger.error(e)
+    finally:
+        cur.close()
 
     return blog
 
@@ -128,6 +130,7 @@ async def get_blogs_by_page(db, page):
     except Exception as e:
         logger.error(e.args)
     finally:
+        cur.close()
         return blogs
 
 async def post_new_blog(db, uid, title, contents):
@@ -144,9 +147,10 @@ async def post_new_blog(db, uid, title, contents):
                         id, uid, title, contents)
         logger.debug(sql)
 
-        await cur.execute("INSERT INTO blog (Id,uId,title,contents) VALUES (%s,%s,'%s','%s')",(
+        await cur.execute("INSERT INTO blog (Id,uId,title,contents) VALUES (%s,%s,%s,%s)",(
                         id, uid, title, contents,))
         await db.commit()
+        cur.close()
     except Exception as e:
         logger.error(e)
         return False
@@ -157,7 +161,7 @@ async def post_update_blog(db, id, title, contents):
         cur = await db.cursor()
         sql ="UPDATE blog SET title = '{}', contents = '{}' WHERE Id = {}".format(title, contents , int(id))
         logger.debug(sql)
-        await cur.execute("UPDATE blog SET title ='%s', contents ='%s' WHERE Id = %s",(title, contents , int(id),))
+        await cur.execute("UPDATE blog SET title =%s, contents =%s WHERE Id = %s",(title, contents , int(id),))
         await db.commit()
     except Exception as e:
         logger.error(e)
@@ -196,10 +200,10 @@ async def create_new_user(db, name, email, hash_password ):
             id, email, name, hash_password)
         logger.debug(sql)    
 
-        r = await cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (%s,'%s','%s','%s')", (id, email,name,hash_password,))
+        r = await cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (%s,%s,%s,%s)", (id, email,name,hash_password,))
         logger.debug("insert author result = ", r)
         await cur.close()
-	await db.commit()
+	    await db.commit()
         return id
     except Exception as e:
         logger.error(e.args[0])
