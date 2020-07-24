@@ -89,7 +89,7 @@ before ......
         await db.commit()
         await c.close()
     except Exception as e:
-        print("Error, when db_init! {}".format(e.args[0]))
+        logger.error(e))
     finally:
         pass
 
@@ -99,15 +99,15 @@ async def get_blog_by_id(db, id):
         cur = await db.cursor()
         if int(id) > 0:
             await cur.execute('''SELECT blog.Id, blog.uId, blog.title, blog.contents, author.nickname 
-            FROM blog, author WHERE blog.uId=author.Id AND blog.Id=%s''', (int(id),))
-            (ret,) = cur.fetchone()
+            FROM blog, author WHERE blog.uId=author.Id AND blog.Id=%s''', (int(id)))
+            ret = await cur.fetchone()
             if len(ret) > 0:
                 blog = Bloge(int(ret[0]), int(ret[1]), str(ret[2]), str(ret[3]), str(ret[4]))
+        await cur.close()
     except Exception as e:
         logger.error(e)
     finally:
-        cur.close()
-
+        pass
     return blog
 
 
@@ -127,11 +127,12 @@ async def get_blogs_by_page(db, page):
         if len(rets) > 0:
             for r in rets:
                 blogs.append(Bloge(int(r[0]), int(r[1]), str(r[2]), str(r[3]), str(r[4])))
-    except Exception as e:
-        logger.error(e.args)
-    finally:
         cur.close()
-        return blogs
+    except Exception as e:
+        logger.error(e)
+    finally:
+        pass
+    return blogs
 
 async def post_new_blog(db, uid, title, contents):
     try:
@@ -161,7 +162,7 @@ async def post_update_blog(db, id, title, contents):
         cur = await db.cursor()
         sql ="UPDATE blog SET title = '{}', contents = '{}' WHERE Id = {}".format(title, contents , int(id))
         logger.debug(sql)
-        await cur.execute("UPDATE blog SET title =%s, contents =%s WHERE Id = %s",(title, contents , int(id),))
+        await cur.execute("UPDATE blog SET title =%s, contents =%s WHERE Id = %s",(title, contents , int(id)))
         await db.commit()
     except Exception as e:
         logger.error(e)
@@ -200,10 +201,10 @@ async def create_new_user(db, name, email, hash_password ):
             id, email, name, hash_password)
         logger.debug(sql)    
 
-        r = await cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (%s,%s,%s,%s)", (id, email,name,hash_password,))
+        r = await cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (%s,%s,%s,%s)", (id, email,name,hash_password))
         logger.debug("insert author result = ", r)
         await cur.close()
-	    await db.commit()
+        await db.commit()
         return id
     except Exception as e:
         logger.error(e)
@@ -213,8 +214,8 @@ async def get_user_by_email(db, email):
     try:
         cur = await db.cursor()
         sql = "SELECT Id, nickname , email, passwd FROM author WHERE email = '{}'".format(email) 
-            
         logger.debug( sql )
+
         await cur.execute( sql )
         author = await cur.fetchone() 
     except Exception as e:
@@ -232,7 +233,7 @@ async def get_user_name_by_id(db, id):
         sql = "SELECT nickname, email FROM author WHERE Id = {}".format(id) 
             
         logger.debug( sql )
-        await cur.execute( "SELECT nickname, email FROM author WHERE Id = %s",(id,)  )
+        await cur.execute( "SELECT nickname, email FROM author WHERE Id = %s",(id)  )
         author = await cur.fetchone() 
     except Exception as e:
         logger.error(e)
@@ -246,7 +247,7 @@ async def get_last_users(db, counts=10):
     try:
         users = list()
         cur = await db.cursor()
-        await cur.execute( "SELECT Id, nickname, email FROM author ORDER BY Id DESC LIMIT 0,%s",(counts,)  )
+        await cur.execute( "SELECT Id, nickname, email FROM author ORDER BY Id DESC LIMIT 0,%s",(counts)  )
         rets = await cur.fetchall()
         if len(rets) > 0:
             for r in rets:
