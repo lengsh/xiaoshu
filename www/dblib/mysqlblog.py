@@ -150,7 +150,7 @@ async def post_new_blog(db, uid, title, contents):
         await cur.execute("INSERT INTO blog (Id,uId,title,contents) VALUES (%s,%s,%s,%s)",(
                         id, uid, title, contents,))
         await db.commit()
-        cur.close()
+        await cur.close()
     except Exception as e:
         logger.error(e)
         return False
@@ -178,7 +178,7 @@ async def any_user_exists(db , email = ''):
         await cur.execute( sql )
         usr = await cur.fetchone()
     except Exception as e:
-        logger.error(e.args)
+        logger.error(e)
         return False
     logger.debug("{} , result = {}".format(sql, usr))
     return bool(usr)    
@@ -206,7 +206,7 @@ async def create_new_user(db, name, email, hash_password ):
 	    await db.commit()
         return id
     except Exception as e:
-        logger.error(e.args[0])
+        logger.error(e)
         return None
 
 async def get_user_by_email(db, email):
@@ -218,7 +218,7 @@ async def get_user_by_email(db, email):
         await cur.execute( sql )
         author = await cur.fetchone() 
     except Exception as e:
-        logger.error(e.args[0])
+        logger.error(e)
         return None
     if author == None :
         return None
@@ -235,7 +235,7 @@ async def get_user_name_by_id(db, id):
         await cur.execute( "SELECT nickname, email FROM author WHERE Id = %s",(id,)  )
         author = await cur.fetchone() 
     except Exception as e:
-        logger.error(e.args[0])
+        logger.error(e)
         return None
     if author == None:
         return None
@@ -252,16 +252,16 @@ async def get_last_users(db, counts=10):
             for r in rets:
                 users.append( Author(int(r[0]), str(r[1]), str(r[2])))
     except Exception as e:
-        logger.error(e.args[0])
+        logger.error(e)
         return None
     return users
 
 async def main():
 
     db = await aiomysql.connect(host='127.0.0.1', port=3306,
-                                  user='root', password='', db='blog')
+                                  user='root', password='', db='blog', charset='utf8mb4')
 
-    #await blog_db_init(db)
+    await blog_db_init(db)
     create_new_user(db, 'lengss','shushan@taobao.com','addfsfsfef33rfsdcdsf')
     db.close()
 
@@ -269,8 +269,8 @@ async def main():
 if __name__ == "__main__":
     
     loop = asyncio.get_event_loop()
-    # Blocking call which returns when the hello_world() coroutine is done
     loop.run_until_complete( main())
     loop.close()
 
-#asyncio.run(main())
+# python3.7+
+# asyncio.run(main())
