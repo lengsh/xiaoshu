@@ -19,12 +19,13 @@ import json
 import dblib.sqliteblog as myblog
 #import dblib.mysqlblog as myblog
 #import dblib.postgreblog as myblog
+import logging
 
 from tornado.options import  options,define 
 define("port",default=8080,help="server listen port", type=int)
 define("dbinit",default=0,help="if need to init db, 0:No; 1:Yes", type=int)
 
-logger.add("log.log", retention="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>")
+logger.add("log.log", rotation="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>", level="INFO")
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -271,6 +272,29 @@ class AuthLogoutHandler(BaseHandler):
 
 
 class Application(tornado.web.Application):
+
+    def _log_request(self, handler):
+
+        status = handler.get_status()
+        if status < 400:
+            if self.settings[r'debug']:
+                log_method = logger.debug
+            else:
+                return
+        elif status < 500:
+            log_method = logger.warning
+        else:
+            log_method = logger.error
+
+        log_method(
+            r'%d %s %.2fms' % (
+                handler.get_status(),
+                handler._request_summary(),
+                1000.0 * handler.request.request_time()
+                )
+            )
+    
+
     def __init__(self, db):
         self.db = db
         handlers = [
@@ -292,7 +316,9 @@ class Application(tornado.web.Application):
             cookie_secret="__TODO:_YOUR_OWN_RANDOM_VALUE_HERE__ABCDEFG.......",
             login_url="/auth/login",
             debug=True,
-        )
+            log_function = self._log_request,
+            )
+        #[i.setFormatter(LogFormatter()) for i in logging.getLogger().handlers]
         super(Application, self).__init__(handlers, **settings)
 
 async def main():
@@ -317,7 +343,6 @@ async def main():
     # 
     #
     #
-
 
     if options.dbinit > 0 :
         myblog.blog_db_init(db)
