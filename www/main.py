@@ -15,7 +15,7 @@ import tornado.httpclient
 import bcrypt
 import signal
 import json
-
+import dblib.dbmodel as dbmodel
 #import sqlite3
 #import dblib.sqliteblog as myblog
 
@@ -44,7 +44,7 @@ class BaseHandler(tornado.web.RequestHandler):
         ret = rets.split("|", 1)
         logger.debug("current user = {}".format(ret))
         if len(ret)>= 2:
-            user = myblog.Author(int(ret[0]), str(ret[1]),'')
+            user = dbmodel.Author(int(ret[0]), str(ret[1]),'')
             self.current_user = user
             
     '''            
@@ -87,8 +87,8 @@ class ServiceHandler(BaseHandler):
             if page == None:
                 page = 0
             blogs = await myblog.get_blogs_by_page( self.application.db, int(page) )
-        body = json.dumps( blogs, default=myblog.Blog_to_json, ensure_ascii=False)
-        # blogs = json.loads( body, object_hook=myblog.Blog_from_json)
+        body = json.dumps( blogs, default=dbmodel.Blog_to_json, ensure_ascii=False)
+        # blogs = json.loads( body, object_hook=dbmodel.Blog_from_json)
         logger.debug("service GET:", body )
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write( body )
@@ -107,8 +107,8 @@ class ServiceHandler(BaseHandler):
             if page == None:
                 page = 0
             blogs = await myblog.get_blogs_by_page( self.application.db, int(page) )
-        body = json.dumps( blogs, default=myblog.Blog_to_json, ensure_ascii=False)
-        # blogs = json.loads( body, object_hook=myblog.Blog_from_json)
+        body = json.dumps( blogs, default=dbmodel.Blog_to_json, ensure_ascii=False)
+        # blogs = json.loads( body, object_hook=dbmodel.Blog_from_json)
         logger.debug("service:POST: ", body )
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write( body )

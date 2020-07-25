@@ -7,6 +7,7 @@ import time
 import sqlite3
 import bcrypt
 import asyncio
+from dblib import dbmodel as dbmodel
 
 '''
 此处使用的sqlite3，应该不需要采用协程（异步支持）。
@@ -15,58 +16,7 @@ import asyncio
 
 '''
 
-logger.add(
-    "log.log",
-    retention="1 days",
-    colorize=True,
-    format="<green>{time}</green> <level>{message}</level>",
-)
-
-
-class Author:
-    """
-    Define user object
-
-    """
-
-    def __init__(self, id, name, email, upasswd = ''):
-        self.id = id
-        self.name = name
-        self.email = email
-        self.upasswd = upasswd
-
-    def __str__(self):
-        return "{},{},{},{}".format(self.id, self.name, self.email, self.upasswd)
-
-
-class Bloge:
-    """
-    Define blog model-db object
-
-
-    """
-
-    def __init__(self, id, uId, title, contents, uname=''):
-        self.id = id
-        self.uId = uId
-        self.title = title
-        self.contents = contents
-        self.author = uname
-
-    def __str__(self):
-        return "{},{},{},{}".format(self.id, self.uId, self.title, self.contents)
-
-def Blog_to_json(obj):
-    return {
-        "id": obj.id,
-        "uId": obj.uId,
-        "title": obj.title,
-        "contents": obj.contents,
-        "author": obj.author
-    }
-
-def Blog_from_json(d):
-    return  Bloge( d["id"], d["uId"], d["title"], d["contents"], d["author"])
+logger.add("log.log", rotation="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>", level="INFO")
 
 
 async def blog_db_init(db):
@@ -85,7 +35,7 @@ before ......
             """CREATE TABLE IF NOT EXISTS
              blog(Id int PRIMARY KEY  NOT NULL, title text, uId int, contents text)"""
         )
-        c.execute("""CREATE INDEX index_author ON author(email)""")
+        c.execute("""CREATE INDEX index_author ON author(email(32))""")
         db.commit()
     except sqlite3.Error as e:
         print("Error, when db_init! {}".format(e.args[0]))
@@ -100,10 +50,10 @@ async def get_blog_by_id(db, id):
             cur.execute('''SELECT blog.Id, blog.uId, blog.title, blog.contents, author.nickname 
             FROM blog, author WHERE blog.uId=author.Id AND blog.Id=?''', (int(id),))
             ret = cur.fetchone()
-            if len(ret) > 0:
-                blog = Bloge(int(ret[0]), int(ret[1]), str(ret[2]), str(ret[3]), str(ret[4]))
+            if ret and len(ret) > 0:
+                blog = dbmodel.Blog(int(ret[0]), int(ret[1]), str(ret[2]), str(ret[3]), str(ret[4]))
     except Exception as e:
-        logger.error(e.args[0])
+        logger.error(e)
 
     return blog
 
@@ -123,7 +73,7 @@ async def get_blogs_by_page(db, page):
         rets = cur.fetchall()
         if len(rets) > 0:
             for r in rets:
-                blogs.append(Bloge(int(r[0]), int(r[1]), str(r[2]), str(r[3]), str(r[4])))
+                blogs.append(dbmodel.Blog(int(r[0]), int(r[1]), str(r[2]), str(r[3]), str(r[4])))
     except Exception as e:
         logger.error(e.args)
     finally:
@@ -243,7 +193,7 @@ async def get_last_users(db, counts=10):
         rets = cur.fetchall()
         if len(rets) > 0:
             for r in rets:
-                users.append( Author(int(r[0]), str(r[1]), str(r[2])))
+                users.append( dbmodel.Author(int(r[0]), str(r[1]), str(r[2])))
     except sqlite3.Error as e:
         logger.error(e.args[0])
         return None
@@ -252,7 +202,7 @@ async def get_last_users(db, counts=10):
 async def main():
     dbname = os.path.join(os.path.dirname(__file__), "example.db")
     db = sqlite3.connect(dbname)  #    'example.db')
-    blog_db_init(db)
+    await blog_db_init(db)
     blog = await get_blog_by_id(db, 1)
     print(blog)
 
@@ -263,9 +213,11 @@ async def main():
 
 if __name__ == "__main__":
     # when python3 > 3.7
-    #asyncio.run(main())
+    asyncio.run(main())
+    '''
     # when < python3.7
     loop = asyncio.get_event_loop()
     # Blocking call which returns when the hello_world() coroutine is done
     loop.run_until_complete( main())
     loop.close()
+    '''
