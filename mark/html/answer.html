@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+<div>Haha, </div>
+{% block title %} PTBlog post{% end %}
+{% block headname %}答题核实： {% end %}
+
+{% block body %}
+<BR>
+<table align = center border=1  cellspacing=0><tr align=center > 
+  <td width=25>ID</td> <td width=80>Topic</td> <td width=25> </td> <td>  标准答案 </td> <td>  输入结果 </td><td> 判别 </td></tr>
+
+{% if questions %}
+        {% for q in questions %} 
+
+        <td>{{ q.id }} </td> <td align=center> {{ q.topic }}</td> <td align=center> = </td> <td align=center> {{ q.result }} </td> <td align=center> {{ q.in_result }}  </td>
+        <td> <img src="static/{{  _('yes.jpeg') if q.result == q.in_result  else _('no.jpg') }}" width=50 /> </td></tr>
+
+        {% end %}
+{% end %}   
+
+</table>
+
+<div align=center>
+  <BR>
+{% if spend %}
+      总用时 = <b style="color:red; font-size: large;"> {{ spend }} </b>  秒
+{% end %}
+</div>
+
+{% end %}
+{#  上面的include讲不会被执行，因为不在block中 #}
+
