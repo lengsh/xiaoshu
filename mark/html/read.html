@@ -1,0 +1,31 @@
+
+{% extends "base.html" %}
+{% block title %}PTBlog reader{% end %}
+{% block headname %}Mark家的自留地{% end %}
+{% block body %}
+
+<table align = center><tr> <td>
+  
+{% if blogs %}
+</td></tr><tr><td>
+
+{% for s in blogs %}
+
+<div id="blog-title"> 
+  <a href="/blog/post?id={{ s.id }}"> {{ s.title }} </a>
+</div>
+<div id="blog-author"> 
+ 作者：{{ s.author }},[{{ s.uId }} ] {% if s.utime > 0 %} -- 用时： {{ s.utime }}  {% end %}
+</div>
+<div id="blog-content"> 
+	{% raw s.contents.replace('\n','<BR>') %}
+</div>
+
+  {% end %}
+  {% end %}
+
+</td> </tr>
+</table>
+
+{# 这是一段注释！！ #}
+{% end %}

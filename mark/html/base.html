@@ -1,0 +1,99 @@
+{% module MobileAdapter() %}
+<head>
+<meta charset="utf-8" content="text/html; charset=UTF-8" ><link rel="icon" href="favicon.ico">
+<title> {% block title %}tornado template example{% end %} </title>
+<style type="text/css" >
+/*<![CDATA[*/
+.divcss5{padding-left:50px;margin-top:-22px}
+/*顶部面板样式*/
+#header {
+width:100%;
+height:120px;
+border:1px rgb(241, 238, 238) solid;
+
+}
+/*中间部分面板样式*/
+#main {
+width:100%;
+border:1px ;
+padding-left: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+
+/*blog面板样式*/
+#blog-content {
+width:95%;
+border:0px;
+padding: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+#blog-title {
+width:90%;
+border:0px;
+padding: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+#blog-author {
+width:90%;
+border:0px;
+padding-left: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+/*底部面板样式*/
+#footer {
+width:100%;
+height:80px;
+border:1px;
+font-family: sans-serif;
+font-size:12px;
+}
+
+/*]]>*/
+</style>
+</head>
+
+<body>
+<div id="header" align=center> 
+<h2>{% block headname %} Mark 速算练习 {% end %}</h2>
+Hi,{% module UserName() %} | {% module LogInOut() %}<BR>
+<a href="/">Index</a> | <a href="/blog/read">Read</a> | <a href="/blog/post">Post</a> | <a href="/question">答题</a>
+
+</div>
+<div id="main" align=center>
+{% block body %}
+
+<table align = center width=420 ><tr> <td>
+    {% if blogs %}
+    </td></tr><tr><td>
+    {% for s in blogs %}
+    <div id="blog-title"> 
+     <li> <a href="/blog/post?id={{ s.id }}"> {{ s.title }} </a> </li>
+    </div>
+    <div id="blog-author"> 
+     作者：{{ s.author }},[{{ s.uId }} ] {% if s.utime > 0 %} -- 用时： {{ s.utime }}  {% end %}
+    </div>    
+    {% end %}
+    {% end %}
+    
+    </td> </tr>
+    </table>
+    
+  
+  
+{% end %}
+</div>
+</body>
+<BR><BR>
+<div id="footer" align=center  style="font-size: 10;" >
+<!--done-->
+ © 2019 lengsh .<京ICP备19007810号> <BR>
+{% set mailLink = '<a href="mailto:lengss@hotmail.com">Contact Me</a>' %}
+{% raw mailLink %}
+</div>
+<!--end: footer -->
+</html>
+
