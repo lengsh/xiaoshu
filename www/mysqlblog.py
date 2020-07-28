@@ -135,7 +135,9 @@ async def create_new_user(db, name, email, hash_password ):
             logger.debug("insert author result = ", r)
         #await cur.close()
             await db.commit()
-        return id
+            await cur.execute("SELECT Id, nickname, email FROM author WHERE email = %s", email)
+            author = await cur.fetchone()
+            return author[0]
     except Exception as e:
         logger.error(e)
         return None
