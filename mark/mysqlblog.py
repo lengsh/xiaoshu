@@ -19,29 +19,16 @@ before ......
     try:
         async with db.cursor() as c:
             await c.execute(
-                """CREATE TABLE IF NOT EXISTS
-                author(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, email text, nickname text, passwd text)"""
+                """CREATE TABLE IF NOT EXISTS author(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, email varchar(128) NOT NULL unique, nickname varchar(256), passwd varchar(128))"""
             )
-            await c.execute(
-                """CREATE TABLE IF NOT EXISTS
+            await c.execute( """CREATE TABLE IF NOT EXISTS
                 blog(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, title text, uId int, contents text, 
-                utime float default 0.0, mtime TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6))"""
+                utime float default 0.0, mtime TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP)"""
             )
             await c.execute("""CREATE INDEX index_author ON author(email(32))""")
-
-            await c.execute(
-                """CREATE TABLE IF NOT EXISTS
-                question(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, topic text, level int, result int, priority int)"""
+            await c.execute( """CREATE TABLE IF NOT EXISTS question(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, topic varchar(256), level int, result int, priority int)"""
             )
             ##########################
-            await c.execute(
-                """INSERT INTO question( topic, level, result, priority) VALUES('2 + 29', 1, 31, 1),
-                    ('4 - 2', 1, 2, 1),
-                    ('11 + 7', 1, 18, 1),
-                    ('24 - 7', 1, 17, 1)
-                """
-            )
-          
             await db.commit()
         #await c.close()
     except Exception as e:
@@ -143,14 +130,17 @@ async def create_new_user(db, name, email, hash_password ):
     try:
         async with db.cursor() as cur:
             sql = "INSERT INTO author (email, nickname, passwd) VALUES ('{}', '{}', '{}')".format(
-                id, email, name, hash_password)
+                email, name, hash_password)
             logger.debug(sql)    
 
             r = await cur.execute("INSERT INTO author (email, nickname, passwd) VALUES (%s,%s,%s)", (email,name,hash_password))
             logger.debug("insert author result = ", r)
         #await cur.close()
             await db.commit()
-        return id
+            await cur.execute("SELECT Id, nickname, email FROM author WHERE email = %s", email) 
+            author = await cur.fetchone() 
+            return author[0]
+
     except Exception as e:
         logger.error(e)
         return None
@@ -286,10 +276,10 @@ def get_random_array( counts=10, MAXID = iTOTAL):
 async def main():
     db = await aiomysql.connect(host='127.0.0.1', port=3306,
                                   user='root', password='', db='blog', charset='utf8mb4')
-#await blog_db_init(db)
+    await blog_db_init(db)
+    await question_db_init(db)
     aID = get_random_array(10) 
     rs = await get_random_questions(db, aID )
-    #await question_db_init(db)
     for r in rs:
         print(r)
     idlist = ','.join(map(str,aID))
@@ -298,10 +288,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    '''    
     loop = asyncio.get_event_loop()
     loop.run_until_complete( main())
     loop.close()
-    '''
 # python3.7+
-    asyncio.run(main())
+#    asyncio.run(main())

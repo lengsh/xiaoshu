@@ -157,7 +157,7 @@ class QuestionHandler(BaseHandler):
             if questions[i].result == questions[i].in_result:
                 iok += 1
             print("question = ", questions[i], "; result = ", answers[str(questions[i].id)])  
-            blog += "{}:  {} = {}\n".format(questions[i].id, questions[i].topic, questions[i].in_result)
+            blog += "{}:    {} = {}\n".format(questions[i].id, questions[i].topic, questions[i].in_result)
         fok = 0
         if len( questions) > 0:
             fok = int(100*iok/len(questions))
