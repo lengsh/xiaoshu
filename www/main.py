@@ -15,20 +15,20 @@ import tornado.httpclient
 import bcrypt
 import signal
 import json
-import dblib.dbmodel as dbmodel
+import dbmodel
 #import sqlite3
-#import dblib.sqliteblog as myblog
+#import sqliteblog as myblog
 
 import aiomysql
-import dblib.mysqlblog as myblog
+import mysqlblog as myblog
 
-#import dblib.postgreblog as myblog
+#import postgreblog as myblog
 
 from tornado.options import  options,define 
 define("port",default=8080,help="server listen port", type=int)
 define("dbinit",default=0,help="if need to init db, 0:No; 1:Yes", type=int)
 
-logger.add("log.log", rotation="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>", level="INFO")
+logger.add("logs/log.log", rotation="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>", level="INFO")
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -65,6 +65,14 @@ class BaseHandler(tornado.web.RequestHandler):
     '''
     async def any_author_exists(self ):
         return await myblog.any_user_exists( self.application.db )
+
+    def isMobile(self) :
+        agent = self.request.headers['User-Agent']
+	#  " /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent))"
+        if agent.count("Android")>0 or agent.count("iPhone")>0:
+            logger.debug(agent,", current is Mobile!")
+            return True 
+        return False
 
 class IndexHandler(BaseHandler):
     async def get(self):
@@ -123,6 +131,7 @@ class BlogPostHandler(BaseHandler):
             blog = await myblog.get_blog_by_id( self.application.db, int(id))
         self.render("post.html", blog= blog)
 
+
     @tornado.web.authenticated
     async def post(self):
         contents = self.get_argument("contents", None)
@@ -158,7 +167,6 @@ class BlogReadHandler(BaseHandler):
                 if page == None:
                     page = 0
                 blogs = await myblog.get_blogs_by_page( self.application.db, int(page) )
-        
         self.render("read.html", blogs = blogs )
 
     async def rpc_get_invoke(self, method, argv):
@@ -312,7 +320,8 @@ class Application(tornado.web.Application):
 
         settings = dict(
             blog_title=u"Tornado Blog",
-            template_path=os.path.join(os.path.dirname(__file__), "html"),
+            #template_path=os.path.join(os.path.dirname(__file__), "html"),
+            template_path=os.path.join(os.path.dirname(__file__), "mhtml"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             ui_modules={'LogInOut': LoginModule, 'UserName':UserModule},
             xsrf_cookies=True,

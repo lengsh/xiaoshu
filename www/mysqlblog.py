@@ -6,9 +6,9 @@ from loguru import logger
 #import time
 import aiomysql
 import asyncio
-from dblib import dbmodel as dbmodel
+import dbmodel 
 
-logger.add("log.log", rotation="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>", level="INFO")
+logger.add("logs/log.log", rotation="1 days", colorize=True, format="<green>{time}</green> <level>{message}</level>", level="INFO")
 
 async def blog_db_init(db):
     """
@@ -20,11 +20,11 @@ before ......
         async with db.cursor() as c:
             await c.execute(
                 """CREATE TABLE IF NOT EXISTS
-                author(Id INT PRIMARY KEY  NOT NULL, email text, nickname text, passwd text)"""
-            )
+                author(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,email varchar(256) NOT NULL unique, 
+                nickname text, passwd text)""")
             await c.execute(
                 """CREATE TABLE IF NOT EXISTS
-                blog(Id int PRIMARY KEY  NOT NULL, title text, uId int, contents text)"""
+                blog(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, title text, uId int, contents text)"""
             )
             await c.execute("""CREATE INDEX index_author ON author(email(32))""")
             await db.commit()
@@ -78,19 +78,12 @@ async def get_blogs_by_page(db, page):
 async def post_new_blog(db, uid, title, contents):
     try:
         async with db.cursor() as cur:
-            await cur.execute("SELECT Id FROM blog ORDER BY Id DESC LIMIT 1")
-            r = await cur.fetchone()
-            logger.debug(r)
-            if r == None :
-                id = 1
-            else:
-                id = int( r[0]  ) + 1
-            sql="INSERT INTO blog (Id,uId,title,contents) VALUES ({},{},'{}','{}')".format(
-                        id, uid, title, contents)
+            sql="INSERT INTO blog (uId,title,contents) VALUES ({},'{}','{}')".format(
+                        uid, title, contents)
             logger.debug(sql)
 
-            await cur.execute("INSERT INTO blog (Id,uId,title,contents) VALUES (%s,%s,%s,%s)",(
-                        id, uid, title, contents,))
+            await cur.execute("INSERT INTO blog (uId,title,contents) VALUES (%s,%s,%s)",(
+                        uid, title, contents,))
             await db.commit()
             #await cur.close()
     except Exception as e:
@@ -134,17 +127,11 @@ async def create_new_user(db, name, email, hash_password ):
         return None
     try:
         async with db.cursor() as cur:
-            await cur.execute("SELECT Id FROM author ORDER BY Id DESC LIMIT 1")
-            r = await cur.fetchone()
-            if r == None :
-                id = 1
-            else:
-                id = int( r[0] ) + 1
-            sql = "INSERT INTO author (Id, email, nickname, passwd) VALUES ({},'{}', '{}', '{}')".format(
-                id, email, name, hash_password)
+            sql = "INSERT INTO author (email, nickname, passwd) VALUES ('{}', '{}', '{}')".format(
+                email, name, hash_password)
             logger.debug(sql)    
 
-            r = await cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (%s,%s,%s,%s)", (id, email,name,hash_password))
+            r = await cur.execute("INSERT INTO author (email, nickname, passwd) VALUES (%s,%s,%s)", (email,name,hash_password))
             logger.debug("insert author result = ", r)
         #await cur.close()
             await db.commit()

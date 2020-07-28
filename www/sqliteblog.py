@@ -7,7 +7,7 @@ import time
 import sqlite3
 import bcrypt
 import asyncio
-from dblib import dbmodel as dbmodel
+import dbmodel
 
 '''
 此处使用的sqlite3，应该不需要采用协程（异步支持）。
@@ -29,13 +29,13 @@ before ......
         c = db.cursor()
         c.execute(
             """CREATE TABLE IF NOT EXISTS
-             author(Id INT PRIMARY KEY  NOT NULL, email text, nickname text, passwd text)"""
+             author(Id INTEGER PRIMARY KEY AUTOINCREMENT, email text, nickname text, passwd text)"""
         )
         c.execute(
             """CREATE TABLE IF NOT EXISTS
-             blog(Id int PRIMARY KEY  NOT NULL, title text, uId int, contents text)"""
+             blog(Id INTEGER PRIMARY KEY AUTOINCREMENT, title text, uId int, contents text)"""
         )
-        c.execute("""CREATE INDEX index_author ON author(email(32))""")
+        c.execute("""CREATE INDEX index_author ON author(email)""")
         db.commit()
     except sqlite3.Error as e:
         print("Error, when db_init! {}".format(e.args[0]))
@@ -82,19 +82,12 @@ async def get_blogs_by_page(db, page):
 async def post_new_blog(db, uid, title, contents):
     try:
         cur = db.cursor()
-        cur.execute("SELECT Id FROM blog ORDER BY Id DESC LIMIT 1")
-        r = cur.fetchone()
-        logger.debug(r)
-        if r == None :
-            id = 1
-        else:
-            id = int( r[0]  ) + 1
-        sql="INSERT INTO blog (Id,uId,title,contents) VALUES ({},{},'{}','{}')".format(
-                        id, uid, title, contents)
+        sql="INSERT INTO blog (uId,title,contents) VALUES ({},'{}','{}')".format(
+                        uid, title, contents)
         logger.debug(sql)
 
-        cur.execute("INSERT INTO blog (Id,uId,title,contents) VALUES (?,?,?,?)",(
-                        id, uid, title, contents,))
+        cur.execute("INSERT INTO blog (uId,title,contents) VALUES (?,?,?)",(
+                        uid, title, contents,))
         db.commit()
     except Exception as e:
         logger.error(e)
@@ -135,17 +128,11 @@ async def create_new_user(db, name, email, hash_password ):
         return None
     try:
         cur = db.cursor()
-        cur.execute("SELECT Id FROM author ORDER BY Id DESC LIMIT 1")
-        r = cur.fetchone()
-        if r == None :
-            id = 1
-        else:
-            id = int( r[0] ) + 1
-        sql = "INSERT INTO author (Id, email, nickname, passwd) VALUES ({},{}, {}, {})".format(
-            id, email, name, hash_password)
+        sql = "INSERT INTO author (email, nickname, passwd) VALUES ({}, {}, {})".format(
+            email, name, hash_password)
         logger.debug(sql)    
 
-        cur.execute("INSERT INTO author (Id, email, nickname, passwd) VALUES (?, ?, ?, ?)", (id, email,name,hash_password,))
+        cur.execute("INSERT INTO author (email, nickname, passwd) VALUES (?, ?, ?)", (email,name,hash_password,))
         db.commit()
         return id
     except sqlite3.Error as e:
