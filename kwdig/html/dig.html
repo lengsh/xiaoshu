@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+<div>Haha, </div>
+{% block title %} 字词典管理 {% end %}
+{% block headname %} 单词/词组 {% end %}
+
+{% block body %}
+<BR>
+<div id="blog-title">
+<H2>高频单词</H2>
+<table align = center border=1  cellspacing=0><tr align=center > 
+		<td width=25>ID</td> <td width=180>Key Words</td> <td>次数(词频) </td> <td> Operator </td> </tr>
+
+{% if wdicts %}
+        {% for d in wdicts %} 
+	<td>{{ d.id }} </td> <td> {{ d.word }}</td><td>{{ d.counts }}</td> <td> <a href="/dig?cmd=DEL&id={{d.id }}&tp=W&docid={{docid}}"> DEL </a>  |  <a href="/dig?cmd=DAA&kw={{d.word}}&id={{d.id}}&tp=W&docid={{docid}}"> DEL&加入忽略库</a> </td></tr>
+        {% end %}
+{% end %}   
+
+</table>
+</div>
+<div id="blog-title">
+	<h2> 高频短语 </H2>
+<table align = center border=1  cellspacing=0><tr align=center > 
+		<td width=25>ID</td> <td width=420>Phrases</td> <td>次数(词频) </td> <td> Operator </td> </tr>
+
+{% if pdicts %}
+        {% for d in pdicts %} 
+	<td>{{ d.id }} </td> <td> {{ d.phrase }}</td><td>{{d.counts}} </td><td> <a href="/dig?cmd=DEL&id={{d.id }}&tp=P&docid={{docid}}"> DEL </a>  |  <a href="/dig?cmd=DAA&kw={{d.phrase}}&id={{d.id}}&tp=P&docid={{docid}} "> DEL&加入忽略库</a></td></tr>
+        {% end %}
+{% end %}   
+</div>
+</table>
+
+
+
+{% end %}
+

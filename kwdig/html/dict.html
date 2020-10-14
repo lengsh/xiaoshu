@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+<div>Haha, </div>
+{% block title %} 字词典管理 {% end %}
+{% block headname %} 单词/词组 排除字典： {% end %}
+
+{% block body %}
+<BR>
+<table align = center border=1  cellspacing=0><tr align=center > 
+		<td width=25>ID</td> <td width=80>Key Words</td><td> Operator </td> </tr>
+
+{% if dicts %}
+        {% for d in dicts %} 
+	<td>{{ d.id }} </td> <td> {{ d.word }}</td> <td> <a href="/wdict?cmd=DEL&id={{d.id }}"> DEL </a> </td></tr>
+        {% end %}
+{% end %}   
+
+</table>
+
+
+{% end %}
+

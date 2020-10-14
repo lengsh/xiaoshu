@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+<div>Haha, </div>
+{% block title %} 文档管理 {% end %}
+{% block headname %} 文档处理记录： {% end %}
+
+{% block body %}
+<div>
+<form action="/upload" enctype="multipart/form-data" method="post">
+<input name="docfile" type="file">
+<input type="submit" value="提交">
+{% module xsrf_form_html() %}
+</form>
+</div>
+
+<table align = center border=1  cellspacing=0><tr align=center > 
+		<td width=25>ID</td> <td width=280>文档名</td><td width=400> 备注 </td><td> Operator </td> </tr>
+
+{% if docs %}
+        {% for d in docs %} 
+	<td>{{ d.id }} </td> <td align=left><a href="/dig?docid={{d.id}}">{{ d.docName }}</a> </td><td>{{d.descr }}</td> <td> <a href="/docs?cmd=DEL&docid={{d.id }}&page={{d.page}}"> DEL </a> </td></tr>
+        {% end %}
+{% end %}   
+
+</table>
+
+{% end %}
+

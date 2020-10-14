@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Document Manager {% end %}
+{% block headname %}Documents upload{% end %}
+{% block body %}
+
+{% if len(errMsg) > 0 %}
+<div align=center><BR>
+<b><span style="color: red">{{ errMsg }}</span><p></b>
+</div>
+{% end %}
+
+
+<form action="/upload" enctype="multipart/form-data" method="post">  
+<input name="docfile" type="file"> 
+<input type="submit" value="提交">
+{% module xsrf_form_html() %}
+
+</form>
+
+
+{# 这是一段注释！！ #}
+{% end %}

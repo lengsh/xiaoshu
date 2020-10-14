@@ -1,0 +1,83 @@
+<head>
+<meta charset="utf-8" content="text/html; charset=UTF-8" ><link rel="icon" href="favicon.ico">
+<!-- 1. Add CSS to `<head>` -->
+<link href="https://transloadit.edgly.net/releases/uppy/v1.21.2/uppy.min.css" rel="stylesheet">
+<title> {% block title %}Mark的自留地{% end %} </title>
+<style type="text/css" >
+/*<![CDATA[*/
+.divcss5{padding-left:50px;margin-top:-22px}
+/*顶部面板样式*/
+#header {
+width:100%;
+height:120px;
+border:1px rgb(241, 238, 238) solid;
+
+}
+/*中间部分面板样式*/
+#main {
+width:100%;
+border:1px ;
+padding-left: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+
+/*blog面板样式*/
+#blog-content {
+width:95%;
+border:0px;
+padding: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+#blog-title {
+width:90%;
+border:0px;
+padding: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+#blog-author {
+width:90%;
+border:0px;
+padding-left: 10px;
+font-family: sans-serif;
+font-size:14px;
+}
+/*底部面板样式*/
+#footer {
+width:100%;
+height:80px;
+border:1px;
+font-family: sans-serif;
+font-size:12px;
+}
+
+/*]]>*/
+</style>
+</head>
+
+<body>
+<div id="header" align=center> 
+<h2>{% block headname %} 专利文档关键词挖掘处理系统 {% end %}</h2>
+<a href="/">首页</a> | <a href="/wdict">单词管理</a> | <a href="/pdict">短语管理</a> | <a href="/docs">文档管理</a>
+
+</div>
+<div id="main" align=center>
+{% block body %}
+
+  
+  
+{% end %}
+</div>
+</body>
+<BR><BR>
+<div id="footer" align=center  style="font-size: 10;" >
+<!--done-->
+ © 2019 lengsh .<京ICP备19007810号> <BR>
+{% set mailLink = '<a href="mailto:lengss@hotmail.com">Contact Me</a>' %}
+{% raw mailLink %}
+</div>
+<!--end: footer -->
+</html>
+
