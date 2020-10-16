@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+class KwWord:
+    """
+    Define user object
+
+    """
+
+    def __init__(self, id, word, descr='', counts=0, docId=-1):
+        self.id = id
+        self.word = word
+        self.descr = descr
+        self.counts = counts
+        self.docId = docId
+    def __str__(self):
+        return "{},{},{},{},{}".format(self.id, self.word, self.descr, self.counts, self.docId)
+
 class Word:
     """
     Define user object

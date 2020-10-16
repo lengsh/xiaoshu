@@ -11,9 +11,10 @@
 
 {% if dicts %}
         {% for d in dicts %} 
-	</tr><td>{{ d.id }} </td> <td> {{ d.word }}</td><td> {{ d.descr }} </td> <td>
-		<a href="/kwdict?cmd=DEL&id={{d.id }}"> DEL </a>   |   
-		<a href="/kwedit?cmd=EDIT&id={{d.id }}"> Edit </a>
+	{% set anchor = d.id %}
+	</tr><td><a href="#{{ anchor }}" name="{{ anchor }}" >{{ d.id }}</a> </td> <td> {{ d.word }}</td><td> {{ d.descr }} </td> <td>
+		<a href="/kwedit?cmd=EDIT&id={{d.id }}#{{ anchor }}"> Edit </a> --- | --- 
+		<a href="/kwdict?cmd=DEL&id={{d.id }}#{{ anchor }}"> DEL </a>       
 	</td></tr>
         {% end %}
 {% end %}   

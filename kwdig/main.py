@@ -104,6 +104,73 @@ class PdictHandler(BaseHandler):
         w_dict = await mp.get_all_omit_phrases(self.application.db )
         self.render("pdict.html", dicts= w_dict )
 
+
+class KwdictHandler(BaseHandler):
+    async def get(self):
+        dicts = await mp.get_all_keywords(self.application.db )
+        self.render("kwdict.html", dicts=dicts)
+
+    async def post(self):
+        docId = self.get_argument("id", 0)
+        dicts = await mp.get_all_doc_kw_words(self.application.db, docId )
+        # for r in w_dict:
+        #     print(r)
+        self.render("kwdict.html", dicts= dicts )
+
+class KwEditHandler(BaseHandler):
+    async def get(self):
+        errMsg = ""
+        id = self.get_argument("id", 0)
+        kw = self.get_argument("kw", "")
+        cmd = self.get_argument("cmd", "")
+        descr = self.get_argument("descr", "").strip()
+        if cmd.upper() == "ADD" and len(kw) > 0:
+            await mp.add_keyword(self.application.db, kw, descr)
+            dicts = await mp.get_all_keywords(self.application.db, 1)
+            self.render("kwdict.html", dicts =dicts)
+            return
+
+        elif cmd.upper() == "UPIT" and len(kw) > 0 and int(id)>0 :
+            await mp.update_keyword(self.application.db, int(id), kw, descr)
+            dicts = await mp.get_all_keywords(self.application.db )
+            self.render("kwdict.html", dicts=dicts)
+            return
+        
+        if cmd.upper() == "EDIT" and int(id)>0 :
+            ob = await mp.get_keyword(self.application.db, int(id))
+            cmd = "UPIT"
+            if ob.id:
+                kw = ob.word
+                descr = ob.descr.strip()
+        self.render("kwedit.html", kw = kw, descr = descr, cmd=cmd, id=id, errMsg = errMsg)
+
+    async def post(self):
+        errMsg = ""
+        id = self.get_argument("id", 0)
+        kw = self.get_argument("kw", "")
+        cmd = self.get_argument("cmd", "")
+        descr = self.get_argument("descr", "").strip()
+        if cmd.upper() == "ADD" and len(kw) > 0:
+            await mp.add_keyword(self.application.db, kw, descr)
+            dicts = await mp.get_all_keywords(self.application.db, 1)
+            self.render("kwdict.html", dicts=dicts)
+            return
+
+        elif cmd.upper() == "UPIT" and len(kw) > 0 and int(id)>0 :
+            await mp.update_keyword(self.application.db, int(id), kw, descr)
+            dicts = await mp.get_all_keywords(self.application.db )
+            self.render("kwdict.html", dicts=dicts)
+            return
+        
+        if cmd.upper() == "EDIT" and int(id)>0 :
+            ob = await mp.get_keyword(self.application.db, int(id))
+            cmd = "UPIT"
+            if ob.id:
+                kw = ob.word
+                descr = ob.descr.strip()
+        self.render("kwedit.html", kw = kw, descr = descr, cmd=cmd, id=id, errMsg = errMsg)
+
+
 class DigHandler(BaseHandler):
     async def get(self):
         docid = self.get_argument("docid", None)
@@ -125,10 +192,13 @@ class DigHandler(BaseHandler):
                 await mp.delete_doc_word(self.application.db, int(id))
             elif topic == 'P':
                 await mp.delete_doc_phrase(self.application.db, int(id))
+            elif topic == 'K':
+                await mp.delete_doc_kw_word(self.application.db, int(id))
 
-        wds = await mp.get_keywords_by_docId(self.application.db, docid)
+        kws = await mp.get_all_doc_kw_words(self.application.db, docid)
+        wds = await mp.get_words_by_docId(self.application.db, docid)
         phs = await mp.get_phrases_by_docId(self.application.db, docid)
-        self.render("dig.html", wdicts= wds, pdicts = phs, docid=docid )
+        self.render("dig.html", wdicts= wds, pdicts = phs, kdicts = kws, docid=docid )
 
     async def post(self):
         docid = self.get_argument("docid", None)
@@ -151,9 +221,10 @@ class DigHandler(BaseHandler):
             elif topic == 'P':
                 await mp.delete_doc_phrase(self.application.db, int(id))
 
-        wds = await mp.get_keywords_by_docId(self.application.db, docid)
+        kws = await map.get_all_doc_kw_words(self.application.db, docid)
+        wds = await mp.get_words_by_docId(self.application.db, docid)
         phs = await mp.get_phrases_by_docId(self.application.db, docid)
-        self.render("dig.html", wdicts= wds, pdicts = phs, docid=docid )
+        self.render("dig.html", wdicts= wds, pdicts = phs, kdicts = kws, docid=docid )
 
 
 class DocsHandler(BaseHandler):
@@ -246,10 +317,12 @@ class Application(tornado.web.Application):
         handlers = [
                     (r'/', IndexHandler), 
                     (r'/wdict',WdictHandler),
+                    (r'/pdict',PdictHandler),
+                    (r'/kwdict',KwdictHandler),
+                    (r'/kwedit',KwEditHandler),
                     (r'/docs', DocsHandler),
                     (r'/dig', DigHandler),
-                    (r'/upload', FileHandler),
-                    (r'/pdict',PdictHandler)
+                    (r'/upload', FileHandler)
         ]
 
         settings = dict(

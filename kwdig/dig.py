@@ -10,25 +10,29 @@ import mypatent as mp
 import asyncio
 import aiomysql
 
-WORD_MAX_COUNTS = 50 
+WORD_MIN_COUNTS = 5 
 PHRASE_MIN_COUNTS = 2
 
 count_dict = {}
 count_dict_re = {}
 count_multi_words = {}
+count_keyword = {}
+
 DEBUG = True
 omit_list =[]
 omit_words_list = []
-
+keyword_dict = {}
 
 def ClearDict():
     global count_dict
     global count_dict_re
     global count_multi_words
+    global count_keyword
+
     count_dict.clear()
     count_dict_re.clear()
     count_multi_words.clear()
-
+    count_keyword.clear()
 
 def Debug(*args):
     #DEBUG = False
@@ -47,13 +51,27 @@ def Debug(*args):
 async def prepareDict( db ):
     global omit_list
     global omit_words_list
+    global keyword_dict
+
     rs = await mp.get_all_omit_words( db)
     for r in rs:
         omit_list.append(r.word)
     rs = await mp.get_all_omit_phrases( db )
     for r in rs:
         omit_words_list.append( r.phrase )
+    rs = await mp.get_all_keywords( db )
+    for r in rs:
+        keyword_dict[r.word] = r.id
 
+def KeywordFind(str):
+    global count_keyword
+    for k in keyword_dict.keys():
+        fc = str.count(k)
+        if  fc > 0:
+            if k in count_keyword.keys():
+                count_keyword[ k ] = count_keyword[ k ] + fc 
+            else:
+                count_keyword[ k ] = fc
 
 def WordCount(str):
     # 文章字符串前期处理
@@ -85,8 +103,8 @@ def WordsLink(strs, pref=''):
     mulWords=""
     Debug(idx_link_list)
 
-    intab = "!,.];:?})"
-    outab = "         "
+    intab = "!,.;:?})][("
+    outab = "           "
     trantab = str.maketrans(intab, outab)
 
     for j in range( max_idx ):
@@ -132,14 +150,13 @@ def WordsLink(strs, pref=''):
 
 
 def WordFilter():
-    # 
     global count_dict
     global count_dict_re
-    global WORD_MAX_COUNTS
+    global WORD_MIN_COUNTS
 
 
-    intab = "!,.];:?})"
-    outab = "         "
+    intab = "!,.;:?})]([{"
+    outab = "            "
     trantab = str.maketrans(intab, outab)
 
 
@@ -150,17 +167,18 @@ def WordFilter():
     list_sort = sorted(list_one, key=lambda x: x[1], reverse=True)
     count_dict_re.clear()
     for one in list_sort:
-        if int(one[1]) < WORD_MAX_COUNTS :
+        if int(one[1]) < WORD_MIN_COUNTS :
             pass
         else:
             new_word = one[0]
-            new_word.translate(trantab)
+            new_word = new_word.translate(trantab)
             new_word = new_word.strip()
+
             if len(new_word) > 1:
                 count_dict_re[new_word] = one[1]
    #按照词频从高到低排列
 
-async def OneWordSave( db, docId ):
+async def OneWordSave2Db( db, docId ):
     global count_dict_re
     global omit_list
 
@@ -172,7 +190,7 @@ async def OneWordSave( db, docId ):
             await mp.add_doc_word(db, docId, k, count_dict_re[k])
                 
 
-async def PhraseSave( db, docId ):
+async def PhraseSave2Db( db, docId ):
     global PHRASE_MIN_COUNTS 
     global count_multi_words
     global omit_words_list
@@ -189,6 +207,58 @@ async def PhraseSave( db, docId ):
         elif  int(one[1]) >= PHRASE_MIN_COUNTS:
             await mp.add_doc_phrase(db, docId, one[0], one[1])
 
+async def DocKeywordSave2Db( db, docId ):
+    global count_keyword
+    global keyword_dict
+
+    keys = count_keyword.keys()
+    for k in keys:
+        if k in keyword_dict.keys():
+            kwId = keyword_dict[ k ]
+            await mp.add_doc_kw_word(db, k, count_keyword[k], docId, kwId )
+        else:
+            continue
+
+
+def OneWord2Out(docId ):
+    global count_dict_re
+    global omit_list
+
+    keys = count_dict_re.keys()
+    for k in keys:
+        if k in omit_list:
+            continue
+        else:
+            print("docId=",docId,"; word=", k, "; counts=", count_dict_re[k])
+                
+def Keyword2Out(docId ):
+    global count_keyword
+    global keyword_dict
+
+    keys = count_keyword.keys()
+    for k in keys:
+        if k in keyword_dict.keys():
+            kwId = keyword_dict[ k ]
+            print("docId=",docId,"; kwId = ",kwId, "; keyword=", k, "; counts=", count_keyword[k])
+        else:
+            continue
+ 
+def Phrase2Out( docId ):
+    global PHRASE_MIN_COUNTS 
+    global count_multi_words
+    global omit_words_list
+    keys = count_multi_words.keys()
+    values = count_multi_words.values()
+
+    list_one = [(key, val) for key, val in zip(keys, values)]
+    list_sort = sorted(list_one, key=lambda x: x[1], reverse=True)
+
+    result = {}
+    for one in list_sort:
+        if one[0] in omit_words_list:
+            pass
+        elif  int(one[1]) >= PHRASE_MIN_COUNTS:
+            print("docId = ",docId,"; phrase=", one[0],"; counts = ", one[1])
 
 async def Document_word_dig(db,  docx_file):
     document = Document( docx_file )
@@ -199,6 +269,7 @@ async def Document_word_dig(db,  docx_file):
         return docId
 
     for paragraph in document.paragraphs:
+        KeywordFind( paragraph.text)
         WordCount(paragraph.text)
     return docId
 
@@ -220,8 +291,9 @@ async def Process( db, doc_file ):
         WordFilter() 
         count_dict.clear()
         Document_phrase_dig(doc_file)
-        await PhraseSave( db, docId )
-        await OneWordSave(db, docId )
+        await PhraseSave2Db( db, docId )
+        await OneWordSave2Db(db, docId )
+        await DocKeywordSave2Db( db, docId)
     else:
         print("Error to get docID( save db error)!")
     ClearDict() 
@@ -244,8 +316,9 @@ async def main( argv ):
 
     ClearDict()
     await prepareDict(g_db)
-    #print(omit_words_list)
-    #print(omit_list)
+    print(omit_words_list)
+    print(omit_list)
+    print(keyword_dict)
 
     DEBUG = False
     out_format = '-t'
@@ -262,10 +335,20 @@ async def main( argv ):
                 WordFilter() 
                 count_dict.clear()
                 Document_phrase_dig(fargv)
-                await PhraseSave( g_db, docId )
-                await OneWordSave(g_db, docId )
+############################################################
+#
+#  save to db
+#
+#
+#                await PhraseSave2Db( g_db, docId )
+#                await OneWordSave2Db(g_db, docId )
+                Phrase2Out(docId)
+                OneWord2Out(docId)
+                Keyword2Out(docId)
             else:
                 print("Error to get docID( save db error)!")
+        else:
+            print("Error, not docx file!")
 
 
     if os.path.isdir(fargv):
@@ -277,8 +360,8 @@ async def main( argv ):
                     WordFilter() 
                     count_dict.clear()
                     Document_phrase_dig(docxf)
-                    await PhraseSave( g_db, docId )
-                    await OneWordSave(g_db, docId )
+                    await PhraseSave2Db( g_db, docId )
+                    await OneWordSave2Db(g_db, docId )
                     ClearDict()
                 else:
                     print("Error to get docID (save db error)!")

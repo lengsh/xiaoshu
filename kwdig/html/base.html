@@ -2,7 +2,7 @@
 <meta charset="utf-8" content="text/html; charset=UTF-8" ><link rel="icon" href="favicon.ico">
 <!-- 1. Add CSS to `<head>` -->
 <link href="https://transloadit.edgly.net/releases/uppy/v1.21.2/uppy.min.css" rel="stylesheet">
-<title> {% block title %}Mark的自留地{% end %} </title>
+<title> {% block title %}findme:关键词发现{% end %} </title>
 <style type="text/css" >
 /*<![CDATA[*/
 .divcss5{padding-left:50px;margin-top:-22px}
@@ -22,28 +22,21 @@ font-family: sans-serif;
 font-size:14px;
 }
 
-/*blog面板样式*/
-#blog-content {
-width:95%;
-border:0px;
-padding: 10px;
+/*面板样式*/
+#mcontent {
 font-family: sans-serif;
-font-size:14px;
+font-size:12px;
 }
-#blog-title {
-width:90%;
-border:0px;
-padding: 10px;
+#payatention {
 font-family: sans-serif;
-font-size:14px;
+font-size:16px;
+color:red;
 }
-#blog-author {
-width:90%;
-border:0px;
-padding-left: 10px;
+#minicontent {
 font-family: sans-serif;
-font-size:14px;
+font-size:12px;
 }
+
 /*底部面板样式*/
 #footer {
 width:100%;
@@ -60,8 +53,8 @@ font-size:12px;
 <body>
 <div id="header" align=center> 
 <h2>{% block headname %} 专利文档关键词挖掘处理系统 {% end %}</h2>
-<a href="/">首页</a> | <a href="/wdict">单词管理</a> | <a href="/pdict">短语管理</a> | <a href="/docs">文档管理</a>
 
+<a href="/">首页</a> | <a href="/wdict">忽略词管理</a> | <a href="/pdict">忽略短语管理</a> |  <a href="/kwdict">关键词管理</a> |  <a href="/docs">文档管理</a>
 </div>
 <div id="main" align=center>
 {% block body %}
