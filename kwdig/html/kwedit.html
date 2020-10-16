@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Document Manager {% end %}
+{% block headname %}Documents upload{% end %}
+{% block body %}
+
+{% if errMsg and len(errMsg) > 0 %}
+<div align=center><BR>
+<b><span style="color: red">{{ errMsg }}</span><p></b>
+</div>
+{% end %}
+
+<form id="kwform" action="/kwedit"  method="post">
+	<h3>Edit</h3>
+	<table><tr><td> keywords：</td>
+		<td><input type="text" name="kw" value="{{kw}}" size="68"> </td></tr>
+				<tr><td></td><td></td></tr>
+		<tr><td>descript：</td><td>
+	<textarea name="descr" rows="10" cols="70" form="kwform">{{ descr }}</textarea> 
+			</td></tr>
+			</table>
+	<input type="hidden" name="id" value={{ id }} >
+	<input type="hidden" name="cmd" value={{ cmd }} >
+{% module xsrf_form_html() %}
+<input type="submit" value="提交">
+</form>
+
+
+{# 这是一段注释！！ #}
+{% end %}
