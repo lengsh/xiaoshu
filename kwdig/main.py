@@ -36,9 +36,24 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class IndexHandler(BaseHandler):
     async def get(self):
-        answers = None
-        # await myblog.get_answer_best_top(self.application.db, counts=10)
-        self.render('base.html', blogs=answers )
+        self.render('base.html' )
+
+class RedigHandler(BaseHandler):
+    async def get(self):
+        docid = self.get_argument("docid", 0)
+        filename = await mp.get_document_filename(self.application.db, int(docid))
+        if filename == None:
+            self.render("info.html", infoMsg = "this docid is not exist! ")
+        else:
+            filepath = os.path.join(self.application.docpath, filename)
+            if os.path.exists(filepath):
+                await mp.delete_document(self.application.db, int(docid), False)
+                await dig.Process(self.application.db, filepath) 
+                self.redirect("/dig?docid="+docid)
+            else:
+                msg = filepath + " is not exist! please upload again!"
+                self.render("info.html", infoMsg= msg )
+
 
 class WdictHandler(BaseHandler):
     async def get(self):
@@ -322,6 +337,7 @@ class Application(tornado.web.Application):
                     (r'/kwedit',KwEditHandler),
                     (r'/docs', DocsHandler),
                     (r'/dig', DigHandler),
+                    (r'/redig',RedigHandler),
                     (r'/upload', FileHandler)
         ]
 

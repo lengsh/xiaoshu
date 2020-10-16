@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Document Manager {% end %}
+{% block headname %}Documents upload{% end %}
+{% block body %}
+
+{% if len(infoMsg) > 0 %}
+<div align=center><BR>
+<b><span style="color: red">{{ infoMsg }}</span><p></b>
+</div>
+{% else %}
+<div align=center><BR>
+<b><span style="color: red"> Error out control! </span><p></b>
+</div>
+{% end %}
+
+
+{# 这是一段注释！！ #}
+{% end %}

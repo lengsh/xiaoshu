@@ -278,13 +278,26 @@ async def add_document(db, fname):
         logger.error(e)
     return -1
 
-async def delete_document(db, id):
+async def get_document_filename(db, docid):
+    try:
+        async with db.cursor() as cur:
+            await cur.execute("SELECT filename FROM document WHERE Id =%s", (int(docid)),)
+            doc = await cur.fetchone()
+            if doc != None:
+                return str(doc[0])
+    except Exception as e:
+        logger.error(e)
+    return None 
+
+
+async def delete_document(db, id, all = True):
     try:
         async with db.cursor() as cur:
             await cur.execute( "DELETE FROM doc_phrases WHERE docId = %s", (int(id)),)
             await cur.execute( "DELETE FROM doc_words WHERE docId = %s", (int(id)),)
             await cur.execute( "DELETE FROM spec_doc_words WHERE docId = %s", (int(id)),)
-            await cur.execute( "DELETE FROM document WHERE Id = %s", (int(id)),)
+            if all == True:
+                await cur.execute( "DELETE FROM document WHERE Id = %s", (int(id)),)
             await db.commit()
     except Exception as e:
         logger.error(e)
