@@ -301,7 +301,7 @@ async def Process( db, doc_file ):
 async def main( argv ):
 
     if len(argv) < 2 :
-        print("python3 ",argv[0]," docxfile -d/-t | python3 ", argv[0]," docx_path -D/-t")
+        print("python3 ",argv[0]," docxfile -d/-t/DB | python3 ", argv[0]," docx_path -D/-t/DB")
         return
 
     global DEBUG
@@ -330,23 +330,20 @@ async def main( argv ):
     fargv = argv[1]
     if os.path.isfile( fargv ):
         if fargv.find('.docx') > 0 or fargv.find('.DOCX') > 0 :
-            docId = await Document_word_dig(g_db, fargv)
-            if docId > 0:
-                WordFilter() 
-                count_dict.clear()
-                Document_phrase_dig(fargv)
-############################################################
-#
-#  save to db
-#
-#
-#                await PhraseSave2Db( g_db, docId )
-#                await OneWordSave2Db(g_db, docId )
-                Phrase2Out(docId)
-                OneWord2Out(docId)
-                Keyword2Out(docId)
+            if out_format == 'DB':
+                await Process(g_db, fargv)
             else:
-                print("Error to get docID( save db error)!")
+                docId = await Document_word_dig(g_db, fargv)
+                if docId > 0:
+                    WordFilter() 
+                    count_dict.clear()
+                    Document_phrase_dig(fargv)
+############################################################
+                    Phrase2Out(docId)
+                    OneWord2Out(docId)
+                    Keyword2Out(docId)
+                else:
+                    print("Error to get docID( save db error)!")
         else:
             print("Error, not docx file!")
 
@@ -354,18 +351,26 @@ async def main( argv ):
     if os.path.isdir(fargv):
         dirs = os.listdir(fargv)
         for docxf in dirs:
-            if os.path.isfile(docxf) and (docxf.find('.docx') > 0 or docxf.find('.DOCX') > 0) :
-                docId = await Document_word_dig(g_db, docxf)
-                if docId > 0 :
-                    WordFilter() 
-                    count_dict.clear()
-                    Document_phrase_dig(docxf)
-                    await PhraseSave2Db( g_db, docId )
-                    await OneWordSave2Db(g_db, docId )
-                    ClearDict()
+            fname = os.path.join(fargv, docxf)
+            if os.path.isfile(fname) and (docxf.find('.docx') > 0 or docxf.find('.DOCX') > 0) :
+                if out_format == 'DB':
+                    print("Process ", docxf)
+                    await Process(g_db, fname)
                 else:
-                    print("Error to get docID (save db error)!")
-
+                    print(out_format)
+                    docId = await Document_word_dig(g_db, docxf)
+                    if docId > 0 :
+                        WordFilter() 
+                        count_dict.clear()
+                        Document_phrase_dig(docxf)
+                        Phrase2Out(docId)
+                        OneWord2Out(docId)
+                        Keyword2Out(docId)
+                        ClearDict()
+                    else:
+                        print("Error to get docID (save db error)!")
+            else:
+                print('ERRORRRRR')
     g_db.close()
 
 ###################################  MAIN

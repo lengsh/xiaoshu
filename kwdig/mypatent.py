@@ -20,16 +20,16 @@ before ......
     try:
         async with db.cursor() as c:
             await c.execute("""CREATE TABLE IF NOT EXISTS word_omit(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, word varchar(64) NOT NULL unique) """)
-            await c.execute("""CREATE TABLE IF NOT EXISTS phrase_omit(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, phrase varchar(256) NOT NULL unique) """)
+            await c.execute("""CREATE TABLE IF NOT EXISTS phrase_omit(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, phrase varchar(512) NOT NULL unique) """)
             #await c.execute("""CREATE TABLE IF NOT EXISTS phrasedict(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, phrase varchar(256) NOT NULL unique, descr text) """)
             await c.execute("""CREATE TABLE IF NOT EXISTS document(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, filename varchar(128) NOT NULL unique, descr text) """)
             await c.execute("""CREATE TABLE IF NOT EXISTS
                 doc_words(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, docId int, word varchar(64), counts int, mtime TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6) )""")
             # Mysql不同版本，有不同的函数定义：CURRENT_TIMESTAMP  or CURRENT_TIMESTAMP（6）
             await c.execute( """CREATE TABLE IF NOT EXISTS 
-                    doc_phrases(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, phrase varchar(256), counts int, docId int)""")
-            await c.execute( """CREATE TABLE IF NOT EXISTS keywords(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, words varchar(256) NOT NULL unique, descr text)""")
-            await c.execute( """CREATE TABLE IF NOT EXISTS spec_doc_words(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, words varchar(256), counts int, docId int, kwId int)""")
+                    doc_phrases(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, phrase varchar(512), counts int, docId int)""")
+            await c.execute( """CREATE TABLE IF NOT EXISTS keywords(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, words varchar(512) NOT NULL unique, descr text)""")
+            await c.execute( """CREATE TABLE IF NOT EXISTS spec_doc_words(Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, words varchar(512), counts int, docId int, kwId int)""")
             await c.execute("""CREATE unique INDEX idx_keywords ON doc_words(docId, word) """)
             await c.execute("""CREATE unique INDEX idx_phrase ON doc_phrases(docId, phrase) """)
             await c.execute("""CREATE unique INDEX idx_spec ON spec_doc_words(docId, words) """)
