@@ -41,46 +41,9 @@ before ......
     finally:
         pass
 
-
-async def get_words_by_docId(db, docid):
-    words = list() 
-    try:
-        async with db.cursor() as cur:
-            if int(docid) > 0:
-                await cur.execute(
-                    """SELECT Id, word, counts, docId FROM doc_words WHERE docId=%s ORDER BY counts DESC """,
-                    (int(docid)),
-                )
-                rets = await cur.fetchall()
-                if len(rets) > 0:
-                    for r in rets:
-                        words.append(dbmodel.Word( int(r[0]), str(r[1]), int(r[2]), int(r[3]),))
-    except Exception as e:
-        logger.error(e)
-    finally:
-        pass
-    return words 
-
-
-async def get_phrases_by_docId(db, docid):
-    phrases = list() 
-    try:
-        async with db.cursor() as cur:
-            if int(docid) > 0:
-                await cur.execute(
-                    """SELECT Id, phrase, counts, docId FROM doc_phrases WHERE docId=%s ORDER BY counts DESC""",
-                    (int(docid)),
-                )
-                rets = await cur.fetchall()
-                if len(rets) > 0:
-                    for r in rets:
-                        phrases.append(dbmodel.Phrase( int(r[0]), str(r[1]), int(r[2]), int(r[3]),))
-    except Exception as e:
-        logger.error(e)
-    finally:
-        pass
-    return phrases 
-
+#
+# keywords, 
+#
 async def add_keyword(db, word, descr = ''):
     try:
         async with db.cursor() as cur:
@@ -142,7 +105,9 @@ async def get_all_keywords(db, order=0, counts=2000):
         return None
     return ret
 
-
+#
+# spec_doc_words, 
+#
 async def add_doc_kw_word(db, word, count, docId, kwId):
     try:
         async with db.cursor() as cur:
@@ -181,7 +146,9 @@ async def get_all_doc_kw_words(db, docId, counts=2000):
         return None
     return ret
 
-
+#
+# word_omit 忽略词 
+#
 async def add_omit_word(db, word):
     try:
         async with db.cursor() as cur:
@@ -191,7 +158,6 @@ async def add_omit_word(db, word):
         logger.error(e)
         return False
     return True
-
 
 async def delete_omit_word(db, id):
     try:
@@ -221,7 +187,9 @@ async def get_all_omit_words(db, counts=2000):
         return None
     return ret
 
-
+#
+# phrase_omit, 忽略词组
+#
 async def add_omit_phrase(db, word):
     try:
         async with db.cursor() as cur:
@@ -261,6 +229,9 @@ async def get_all_omit_phrases(db, counts=2000):
         return None
     return ret
 
+#
+# 文档管理， document
+#
 async def add_document(db, fname):
     try:
         async with db.cursor() as cur:
@@ -289,6 +260,16 @@ async def get_document_filename(db, docid):
         logger.error(e)
     return None 
 
+async def get_document_file(db, docid):
+    try:
+        async with db.cursor() as cur:
+            await cur.execute("SELECT filename,descr FROM document WHERE Id =%s", (int(docid)),)
+            doc = await cur.fetchone()
+            if doc != None:
+                return str(doc[0]),str(doc[1])
+    except Exception as e:
+        logger.error(e)
+    return None,None 
 
 async def delete_document(db, id, all = True):
     try:
@@ -298,6 +279,16 @@ async def delete_document(db, id, all = True):
             await cur.execute( "DELETE FROM spec_doc_words WHERE docId = %s", (int(id)),)
             if all == True:
                 await cur.execute( "DELETE FROM document WHERE Id = %s", (int(id)),)
+            await db.commit()
+    except Exception as e:
+        logger.error(e)
+        return False
+    return True
+
+async def edit_document(db, id, descr):
+    try:
+        async with db.cursor() as cur:
+            await cur.execute( "UPDATE document SET descr=%s WHERE Id = %s", (descr, int(id)),)
             await db.commit()
     except Exception as e:
         logger.error(e)
@@ -321,6 +312,10 @@ async def get_all_documents(db, fro=0, counts=100):
         logger.error(e)
         return None
     return ret
+
+##
+##  doc_words, document words 
+##
 
 async def add_doc_word(db, docId, word, counts):
     try:
@@ -349,6 +344,49 @@ async def delete_doc_word(db, id):
         logger.error(e)
         return False
     return True
+
+async def get_words_by_docId(db, docid):
+    words = list() 
+    try:
+        async with db.cursor() as cur:
+            if int(docid) > 0:
+                await cur.execute(
+                    """SELECT Id, word, counts, docId FROM doc_words WHERE docId=%s ORDER BY counts DESC """,
+                    (int(docid)),
+                )
+                rets = await cur.fetchall()
+                if len(rets) > 0:
+                    for r in rets:
+                        words.append(dbmodel.Word( int(r[0]), str(r[1]), int(r[2]), int(r[3]),))
+    except Exception as e:
+        logger.error(e)
+    finally:
+        pass
+    return words 
+
+##
+##  doc_phrases, document phrase
+##
+
+async def get_phrases_by_docId(db, docid):
+    phrases = list() 
+    try:
+        async with db.cursor() as cur:
+            if int(docid) > 0:
+                await cur.execute(
+                    """SELECT Id, phrase, counts, docId FROM doc_phrases WHERE docId=%s ORDER BY counts DESC""",
+                    (int(docid)),
+                )
+                rets = await cur.fetchall()
+                if len(rets) > 0:
+                    for r in rets:
+                        phrases.append(dbmodel.Phrase( int(r[0]), str(r[1]), int(r[2]), int(r[3]),))
+    except Exception as e:
+        logger.error(e)
+    finally:
+        pass
+    return phrases 
+
 
 async def add_doc_phrase(db, docId, phrase, counts):
     try:

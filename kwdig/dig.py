@@ -10,6 +10,10 @@ import mypatent as mp
 import asyncio
 import aiomysql
 
+####################################################
+# configure  最小次数设置
+#
+#
 WORD_MIN_COUNTS = 5 
 PHRASE_MIN_COUNTS = 2
 
@@ -187,6 +191,8 @@ async def OneWordSave2Db( db, docId ):
         if k in omit_list:
             continue
         else:
+            if k.isdecimal():
+                continue
             await mp.add_doc_word(db, docId, k, count_dict_re[k])
                 
 

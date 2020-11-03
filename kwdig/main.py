@@ -140,13 +140,14 @@ class KwEditHandler(BaseHandler):
         cmd = self.get_argument("cmd", "")
         descr = self.get_argument("descr", "").strip()
         if cmd.upper() == "ADD" and len(kw) > 0:
+            kw = kw.lower()
             await mp.add_keyword(self.application.db, kw, descr)
             dicts = await mp.get_all_keywords(self.application.db, 1)
             self.render("kwdict.html", dicts =dicts)
             return
 
         elif cmd.upper() == "UPIT" and len(kw) > 0 and int(id)>0 :
-            await mp.update_keyword(self.application.db, int(id), kw, descr)
+            await mp.update_keyword(self.application.db, int(id), kw.lower(), descr)
             dicts = await mp.get_all_keywords(self.application.db )
             self.render("kwdict.html", dicts=dicts)
             return
@@ -155,7 +156,7 @@ class KwEditHandler(BaseHandler):
             ob = await mp.get_keyword(self.application.db, int(id))
             cmd = "UPIT"
             if ob.id:
-                kw = ob.word
+                kw = ob.word.lower()
                 descr = ob.descr.strip()
         self.render("kwedit.html", kw = kw, descr = descr, cmd=cmd, id=id, errMsg = errMsg)
 
@@ -184,6 +185,32 @@ class KwEditHandler(BaseHandler):
                 kw = ob.word
                 descr = ob.descr.strip()
         self.render("kwedit.html", kw = kw, descr = descr, cmd=cmd, id=id, errMsg = errMsg)
+
+class DocEditHandler(BaseHandler):
+    async def get(self):
+        errMsg = ""
+        fn = ""
+        descr = ""
+        id = self.get_argument("id", 0)
+        if int(id)>0 :
+            fn,descr = await mp.get_document_file(self.application.db, int(id))
+            if fn == None:
+                errMsg = "此文档不存在！"
+        else:
+            errMsg = "文档ID格式不正确！"
+        self.render("docedit.html", fn=fn, descr = descr, id=id, errMsg = errMsg)
+
+    async def post(self):
+        errMsg = ""
+        id = self.get_argument("id", 0)
+        kw = self.get_argument("fn", "")
+        descr = self.get_argument("descr", "").strip()
+        if len(descr) > 0:    
+            await mp.edit_document(self.application.db, id, descr)
+            errMsg="Update successful!"
+        fn = ""
+        fn, descr = await mp.get_document_file(self.application.db, id)
+        self.render("docedit.html", fn = fn, descr = descr, id=id, errMsg = errMsg)
 
 
 class DigHandler(BaseHandler):
@@ -335,6 +362,7 @@ class Application(tornado.web.Application):
                     (r'/pdict',PdictHandler),
                     (r'/kwdict',KwdictHandler),
                     (r'/kwedit',KwEditHandler),
+                    (r'/docedit',DocEditHandler),
                     (r'/docs', DocsHandler),
                     (r'/dig', DigHandler),
                     (r'/redig',RedigHandler),
