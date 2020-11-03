@@ -36,7 +36,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class IndexHandler(BaseHandler):
     async def get(self):
-        self.render('base.html' )
+        self.render('index.html' )
 
 class RedigHandler(BaseHandler):
     async def get(self):
