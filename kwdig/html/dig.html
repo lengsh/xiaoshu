@@ -29,18 +29,15 @@
 <div id="mcontent">
 <H2>高频单词</H2>
 <table align = center border=1  cellspacing=0><tr align=center > 
-		<td width=25>ID</td> <td width=180>Key Words</td> <td>次数(词频) </td> <td> Operator </td> </tr>
+		<td width=25>ID</td> <td width=180>Key Words</td> <td>次数(词频) </td> <td>Operator</td><td width=150>Operator</td><td width=120>Operator</td></tr>
 
 {% if wdicts %}
 {% set anchor = 0 %}
         {% for d in wdicts %}
-	<td><a href="#1.{{ int(anchor/2) }}" name="1.{{ int(anchor/2) }}" >{{ d.id }}</a></td> <td> {{ d.word }}</td><td>{{ d.counts }}</td> <td>
-		<div id="minicontent">
-		<a href="/dig?cmd=DEL&id={{d.id }}&tp=W&docid={{docid}}#1.{{ int((anchor-1)/2) }}"> DEL </a>  --  | --  
-		<a href="/dig?cmd=DAA&kw={{d.word}}&id={{d.id}}&tp=W&docid={{docid}}#1.{{ int((anchor-1)/2) }}"> DEL&加入忽略库</a> -- | --
-		<a href="/kwedit?cmd=ADD&kw={{d.word}}"> 加入关键词库</a>
-		</div>
-	</td></tr>
+	<td><a href="#1.{{ int(anchor/2) }}" name="1.{{ int(anchor/2) }}" >{{ d.id }}</a></td> <td> {{ d.word }}</td><td>{{ d.counts }}</td> 
+	<td> <a href="/dig?cmd=DEL&id={{d.id }}&tp=W&docid={{docid}}#1.{{ int((anchor-1)/2) }}"> DEL </a> </td>
+	<td> <a href="/dig?cmd=DAA&kw={{d.word}}&id={{d.id}}&tp=W&docid={{docid}}#1.{{ int((anchor-1)/2) }}"> DEL&加入忽略库</a> </td>
+	<td> <a href="/kwedit?cmd=ADD&kw={{d.word}}"> 加入关键词库</a> </td> </tr>
 	{% set anchor = anchor + 1   %}
         {% end %}
 {% end %}   
@@ -51,19 +48,17 @@
 <h2> 高频短语 </H2>
 <div id="mcontent">
 <table align = center border=1  cellspacing=0    ><tr align=center > 
-		<td width=25>ID</td> <td>Phrases</td> <td>次数(词频) </td> <td width=160> Operator </td> </tr>
+		<td width=25>ID</td> <td>Phrases</td> <td>次数(词频) </td> <td>Operator</td><td>Operator</td><td>Operator</td></tr>
 
 {% if pdicts %}
 {% set anchor = 0  %}
         {% for d in pdicts %} 
-	<td><a href="#2.{{ int(anchor/2) }}" name="2.{{ int(anchor/2) }}" >{{ d.id }}</a></td> <td> {{ d.phrase }}</td><td>{{d.counts}} </td><td> 
-		<div id="minicontent">
-			<a href="/dig?cmd=DEL&id={{d.id }}&tp=P&docid={{docid}}#2.{{ int((anchor-1)/2) }}"> DEL </a><BR> ---------> <a href="/dig?cmd=DAA&kw={{d.phrase}}&id={{d.id}}&tp=P&docid={{docid}}#2.{{ int((anchor-1)/2) }}"> DEL&加入忽略库</a><BR>
-			<a href="/kwedit?cmd=ADD&kw={{d.phrase}}"> 加入关键词库</a>
-		</div>
-	</td></tr>
-        
-	</td></tr>
+	<tr>
+	<td><a href="#2.{{ int(anchor/2) }}" name="2.{{ int(anchor/2) }}" >{{ d.id }}</a></td> <td> {{ d.phrase }}</td><td>{{d.counts}} </td>
+	<td> <a href="/dig?cmd=DEL&id={{d.id }}&tp=P&docid={{docid}}#2.{{ int((anchor-1)/2) }}"> DEL </a></TD>
+	<td> <a href="/dig?cmd=DAA&kw={{d.phrase}}&id={{d.id}}&tp=P&docid={{docid}}#2.{{ int((anchor-1)/2) }}"> DEL&加入忽略库</a></TD>
+	<td> <a href="/kwedit?cmd=ADD&kw={{d.phrase}}"> 加入关键词库</a> </td>
+	</tr>
 	{%  set anchor = anchor + 1    %}
         {% end %}
 {% end %}   

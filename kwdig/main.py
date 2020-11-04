@@ -203,7 +203,6 @@ class DocEditHandler(BaseHandler):
     async def post(self):
         errMsg = ""
         id = self.get_argument("id", 0)
-        kw = self.get_argument("fn", "")
         descr = self.get_argument("descr", "").strip()
         if len(descr) > 0:    
             await mp.edit_document(self.application.db, id, descr)
