@@ -122,15 +122,20 @@ class PdictHandler(BaseHandler):
 
 class KwdictHandler(BaseHandler):
     async def get(self):
+        Id = self.get_argument("id", 0)
+        cmd = self.get_argument("cmd", "")
+        if cmd.upper() == "DEL" and int(Id) > 0:
+            await mp.delete_keyword(self.application.db, int(Id))
+     
         dicts = await mp.get_all_keywords(self.application.db )
         self.render("kwdict.html", dicts=dicts)
 
-    async def post(self):
-        docId = self.get_argument("id", 0)
-        dicts = await mp.get_all_doc_kw_words(self.application.db, docId )
+#    async def post(self):
+#        docId = self.get_argument("id", 0)
+#        dicts = await mp.get_all_doc_kw_words(self.application.db, docId )
         # for r in w_dict:
         #     print(r)
-        self.render("kwdict.html", dicts= dicts )
+#        self.render("kwdict.html", dicts= dicts )
 
 class KwEditHandler(BaseHandler):
     async def get(self):
@@ -151,14 +156,17 @@ class KwEditHandler(BaseHandler):
             dicts = await mp.get_all_keywords(self.application.db )
             self.render("kwdict.html", dicts=dicts)
             return
+ 
+        if cmd.upper() == "DEL" and int(id)>0 :
+            await mp.delete_keyword(self.application.db, int(Id))
+            dicts = await mp.get_all_keywords(self.application.db )
+            self.render("kwdict.html", dicts=dicts)
+            return
         
         if cmd.upper() == "EDIT" and int(id)>0 :
             ob = await mp.get_keyword(self.application.db, int(id))
-            cmd = "UPIT"
-            if ob.id:
-                kw = ob.word.lower()
-                descr = ob.descr.strip()
         self.render("kwedit.html", kw = kw, descr = descr, cmd=cmd, id=id, errMsg = errMsg)
+
 
     async def post(self):
         errMsg = ""
